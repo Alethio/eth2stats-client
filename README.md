@@ -20,7 +20,7 @@
 The first thing you should do is get a beacon chain client node running and connected to said beacon chain by joining the [Prysm Sapphire Testnet](https://prylabs.net/participate).
 
 Then you can run the following Docker command to start sending stats to [eth2stats](https://sapphire.eth2stats.net).  
-**Please your --eth2stats.node-name before starting the cli tool.**
+**Please update your --eth2stats.node-name before starting the cli tool.**
 ```shell script
 docker run -d --name eth2stats-client --network="host" \
     alethio/eth2stats-client:latest \
