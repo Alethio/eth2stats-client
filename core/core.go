@@ -130,10 +130,34 @@ func (c *Core) sendHeartbeat() {
 	}
 }
 
+func (c *Core) sendTelemetry() {
+	for  {
+		log.Trace("sending telemetry")
+
+		peers, err := c.beaconClient.GetPeerCount()
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Tracef("peers: %d", peers)
+
+		_, err = c.stats.Telemetry(c.contextWithToken(), &proto.TelemetryRequest{
+			Peers: peers,
+		})
+		if err != nil {
+			log.Fatal(err)
+
+			continue
+		}
+		log.Trace("done sending telemetry")
+		time.Sleep(TelemetryInterval)
+	}
+}
+
 func (c *Core) Run() {
 	c.connectToServer()
 	go c.sendHeartbeat()
 	go c.watchNewHeads()
+	go c.sendTelemetry()
 }
 
 func (c *Core) Close() {
