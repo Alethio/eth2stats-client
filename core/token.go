@@ -4,11 +4,13 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
+	"path"
 
 	"google.golang.org/grpc/metadata"
 )
 
-const TokenPath = "./token.dat"
+const ConfigFolder = "config"
+var TokenPath = path.Join(ConfigFolder, "token.dat")
 
 func searchToken() (string, error) {
 	log.Debug("looking for existing token")
@@ -29,6 +31,7 @@ func searchToken() (string, error) {
 
 func writeToken(token string) error {
 	log.Debug("persisting token to disk")
+	_ = os.MkdirAll(ConfigFolder, os.ModePerm)
 	err := ioutil.WriteFile(TokenPath, []byte(token), 0644)
 	if err != nil {
 		log.Error(err)
