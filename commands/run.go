@@ -27,7 +27,7 @@ var runCmd = &cobra.Command{
 			},
 			BeaconNodeType: viper.GetString("beacon.type"),
 			BeaconNodeAddr: viper.GetString("beacon.addr"),
-			DataStoreFolder: viper.GetString("data.folder"),
+			DataFolder:     viper.GetString("data.folder"),
 		})
 		go c.Run()
 
@@ -58,6 +58,6 @@ func init() {
 	runCmd.Flags().String("beacon.addr", "", "Beacon node endpoint address")
 	viper.BindPFlag("beacon.addr", runCmd.Flag("beacon.addr"))
 
-	runCmd.Flags().String("data.folder", "data", "Folder in which to persist data and settings")
+	runCmd.Flags().String("data.folder", "./data", "Folder in which to persist data")
 	viper.BindPFlag("data.folder", runCmd.Flag("data.folder"))
 }

@@ -22,7 +22,7 @@ type Config struct {
 	Eth2stats      Eth2statsConfig
 	BeaconNodeType string
 	BeaconNodeAddr string
-	DataStoreFolder string
+	DataFolder     string
 }
 
 type Core struct {
@@ -52,12 +52,11 @@ func New(config Config) *Core {
 		stopChan:     make(chan bool),
 	}
 
-	token, err := c.searchToken()
+	err := c.searchToken()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	c.token = token
 
 	return &c
 }

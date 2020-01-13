@@ -11,28 +11,28 @@ import (
 
 const TokenFile = "token.dat"
 
-func  (c *Core) searchToken() (string, error) {
+func  (c *Core) searchToken() error {
 	log.Debug("looking for existing token")
-	fileName := path.Join(c.config.DataStoreFolder, TokenFile)
+	fileName := path.Join(c.config.DataFolder, TokenFile)
 	dat, err := ioutil.ReadFile(fileName)
 	if os.IsNotExist(err) {
 		log.Warn("token file not found; will register as new client")
-		return "", nil
+		return nil
 	} else if err != nil {
 		log.Error(err)
 
-		return "", err
+		return err
 	}
 
 	log.Debug("found token")
-
-	return string(dat), nil
+	c.token = string(dat)
+	return nil
 }
 
 func  (c *Core) writeToken(token string) error {
-	fileName := path.Join(c.config.DataStoreFolder, TokenFile)
+	fileName := path.Join(c.config.DataFolder, TokenFile)
 	log.Debug("persisting token to disk")
-	_ = os.MkdirAll(c.config.DataStoreFolder, os.ModePerm)
+	_ = os.MkdirAll(c.config.DataFolder, os.ModePerm)
 	err := ioutil.WriteFile(fileName, []byte(token), 0644)
 	if err != nil {
 		log.Error(err)
