@@ -4,32 +4,36 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
+	"path"
 
 	"google.golang.org/grpc/metadata"
 )
 
-const TokenPath = "./token.dat"
+const TokenFile = "token.dat"
 
-func searchToken() (string, error) {
+func  (c *Core) searchToken() error {
 	log.Debug("looking for existing token")
-	dat, err := ioutil.ReadFile(TokenPath)
+	fileName := path.Join(c.config.DataFolder, TokenFile)
+	dat, err := ioutil.ReadFile(fileName)
 	if os.IsNotExist(err) {
 		log.Warn("token file not found; will register as new client")
-		return "", nil
+		return nil
 	} else if err != nil {
 		log.Error(err)
 
-		return "", err
+		return err
 	}
 
 	log.Debug("found token")
-
-	return string(dat), nil
+	c.token = string(dat)
+	return nil
 }
 
-func writeToken(token string) error {
+func  (c *Core) writeToken(token string) error {
+	fileName := path.Join(c.config.DataFolder, TokenFile)
 	log.Debug("persisting token to disk")
-	err := ioutil.WriteFile(TokenPath, []byte(token), 0644)
+	_ = os.MkdirAll(c.config.DataFolder, os.ModePerm)
+	err := ioutil.WriteFile(fileName, []byte(token), 0644)
 	if err != nil {
 		log.Error(err)
 
@@ -58,7 +62,7 @@ func (c *Core) updateToken(token string) {
 	}
 
 	c.token = token
-	err := writeToken(token)
+	err := c.writeToken(token)
 	if err != nil {
 		log.Fatal(err)
 	}

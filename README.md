@@ -21,11 +21,15 @@ The first thing you should do is get a beacon chain client node running and conn
 
 Then you can run the following Docker command to start sending stats to [eth2stats](https://sapphire.eth2stats.net).  
 **Please update your `--eth2stats.node-name` arg before starting the cli tool.**
+**Please update your `--data-folder` arg before starting the cli tool.**
+
 ```shell script
 docker run -d --name eth2stats --restart always --network="host" \
     alethio/eth2stats-client:latest \
     run --v \
-    --eth2stats.node-name="YourNode" \
+    -v ~/eth2stats/data:/data
+    --eth2stats.node-name="YourNode" 
+    --data-folder="/data"\
     --eth2stats.addr="grpc.sapphire.eth2stats.net:443" --eth2stats.tls=true \
     --beacon.type="prysm" --beacon.addr="localhost:4000"
 ```

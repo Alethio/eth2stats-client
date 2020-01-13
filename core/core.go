@@ -22,6 +22,7 @@ type Config struct {
 	Eth2stats      Eth2statsConfig
 	BeaconNodeType string
 	BeaconNodeAddr string
+	DataFolder     string
 }
 
 type Core struct {
@@ -43,19 +44,21 @@ type Core struct {
 }
 
 func New(config Config) *Core {
-	token, err := searchToken()
+	c:=Core{
+		config:       config,
+		stats:        initEth2statsClient(config.Eth2stats),
+		beaconClient: initBeaconClient(config.BeaconNodeType, config.BeaconNodeAddr),
+		restartChan:  make(chan bool),
+		stopChan:     make(chan bool),
+	}
+
+	err := c.searchToken()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return &Core{
-		config:       config,
-		stats:        initEth2statsClient(config.Eth2stats),
-		beaconClient: initBeaconClient(config.BeaconNodeType, config.BeaconNodeAddr),
-		token:        token,
-		restartChan:  make(chan bool),
-		stopChan:     make(chan bool),
-	}
+
+	return &c
 }
 
 func (c *Core) connectToServer() {
