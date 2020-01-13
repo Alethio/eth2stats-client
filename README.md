@@ -36,3 +36,29 @@ docker run -d --name eth2stats --restart always --network="host" \
 
 You should now be able to see your node and it's stats on [eth2stats](https://sapphire.eth2stats.net).
 
+## Building from source
+### Prerequisites
+- a working Golang environment (tested with go v1.13.5)
+    - requires go modules (>=go v1.11)
+
+### Step-by-step
+**Clone the repo**
+```shell script
+git clone git@github.com:Alethio/eth2stats-client.git
+cd eth2stats-client
+```
+
+**Build the executable**
+
+We are using go modules, so it will automatically download the dependencies
+```shell script
+make build
+```
+
+**Run**
+```shell script
+./eth2stats-client --eth2stats.node-name="YourNode" \ 
+                   --data-folder="/data" \
+                   --eth2stats.addr="grpc.sapphire.eth2stats.net:443" --eth2stats.tls=true \
+                   --beacon.type="prysm" --beacon.addr="localhost:4000"
+```

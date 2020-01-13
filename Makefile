@@ -8,7 +8,3 @@ run:
 
 install:
 	go install -ldflags "-X main.buildVersion=$(VERSION)"
-
-build-docker:
-	$(eval KEY:=$(shell cat ~/.ssh/id_rsa_gitlab_machineuser | base64 --wrap 0))
-	docker build --build-arg GITLAB_SSH_KEY="${KEY}" -t alethio/eth2stats-client .
