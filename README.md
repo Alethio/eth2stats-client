@@ -29,7 +29,7 @@ docker run -d --name eth2stats --restart always --network="host" \
     run --v \
     -v ~/eth2stats/data:/data \
     --eth2stats.node-name="YourNode" \ 
-    --data-folder="/data" \
+    --data.folder="/data" \
     --eth2stats.addr="grpc.sapphire.eth2stats.net:443" --eth2stats.tls=true \
     --beacon.type="prysm" --beacon.addr="localhost:4000"
 ```
@@ -57,8 +57,9 @@ make build
 
 **Run**
 ```shell script
-./eth2stats-client --eth2stats.node-name="YourNode" \ 
-                   --data-folder="/data" \
+./eth2stats-client run \
+                   --data.folder="/data" \
+                   --eth2stats.node-name="YourNode" \
                    --eth2stats.addr="grpc.sapphire.eth2stats.net:443" --eth2stats.tls=true \
                    --beacon.type="prysm" --beacon.addr="localhost:4000"
 ```
