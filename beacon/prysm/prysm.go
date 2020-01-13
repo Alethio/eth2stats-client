@@ -62,6 +62,17 @@ func (c *BeaconClient) GetGenesisTime() (int64, error) {
 	return genesis.GetGenesisTime().GetSeconds(), nil
 }
 
+
+func (c *BeaconClient) GetPeerCount() (int64, error) {
+	peers, err := c.node.ListPeers(context.Background(), &empty.Empty{})
+	if err != nil {
+		log.Error(err)
+		return 0, err
+	}
+
+	return int64(len(peers.Peers)), nil
+}
+
 func (c *BeaconClient) SubscribeChainHeads() (beacon.ChainHeadSubscription, error) {
 	stream, err := c.beacon.StreamChainHead(context.Background(), &empty.Empty{})
 	if err != nil {

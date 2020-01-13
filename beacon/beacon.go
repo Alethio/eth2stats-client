@@ -12,5 +12,7 @@ type ChainHeadSubscription interface {
 type Client interface {
 	GetVersion() (string, error)
 	GetGenesisTime() (int64, error)
+	GetPeerCount() (int64, error)
+
 	SubscribeChainHeads() (ChainHeadSubscription, error)
 }

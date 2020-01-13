@@ -1,7 +1,7 @@
 module github.com/alethio/eth2stats-client
 
 require (
-	github.com/alethio/eth2stats-proto v0.0.0-20200108150647-b401bed815fb
+	github.com/alethio/eth2stats-proto v0.0.0-20200111221226-73bce0ea4387
 	github.com/gin-gonic/gin v1.5.0
 	github.com/golang/protobuf v1.3.2
 	github.com/kwix/logrus-module-formatter v0.0.0-20190702125859-070a70371a97
