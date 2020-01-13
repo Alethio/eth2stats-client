@@ -9,12 +9,12 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-const ConfigFolder = "config"
-var TokenPath = path.Join(ConfigFolder, "token.dat")
+const TokenFile = "token.dat"
 
-func searchToken() (string, error) {
+func  (c *Core) searchToken() (string, error) {
 	log.Debug("looking for existing token")
-	dat, err := ioutil.ReadFile(TokenPath)
+	fileName := path.Join(c.config.DataStoreFolder, TokenFile)
+	dat, err := ioutil.ReadFile(fileName)
 	if os.IsNotExist(err) {
 		log.Warn("token file not found; will register as new client")
 		return "", nil
@@ -29,10 +29,11 @@ func searchToken() (string, error) {
 	return string(dat), nil
 }
 
-func writeToken(token string) error {
+func  (c *Core) writeToken(token string) error {
+	fileName := path.Join(c.config.DataStoreFolder, TokenFile)
 	log.Debug("persisting token to disk")
-	_ = os.MkdirAll(ConfigFolder, os.ModePerm)
-	err := ioutil.WriteFile(TokenPath, []byte(token), 0644)
+	_ = os.MkdirAll(c.config.DataStoreFolder, os.ModePerm)
+	err := ioutil.WriteFile(fileName, []byte(token), 0644)
 	if err != nil {
 		log.Error(err)
 
@@ -61,7 +62,7 @@ func (c *Core) updateToken(token string) {
 	}
 
 	c.token = token
-	err := writeToken(token)
+	err := c.writeToken(token)
 	if err != nil {
 		log.Fatal(err)
 	}

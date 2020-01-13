@@ -33,3 +33,4 @@ tmp/
 config.yml
 eth2stats-client
 token.dat
+data
