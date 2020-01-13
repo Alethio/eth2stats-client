@@ -44,7 +44,7 @@ type Core struct {
 }
 
 func New(config Config) *Core {
-	c:=Core{
+	c := Core{
 		config:       config,
 		stats:        initEth2statsClient(config.Eth2stats),
 		beaconClient: initBeaconClient(config.BeaconNodeType, config.BeaconNodeAddr),
@@ -56,7 +56,6 @@ func New(config Config) *Core {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 
 	return &c
 }
@@ -134,7 +133,7 @@ func (c *Core) sendHeartbeat() {
 }
 
 func (c *Core) sendTelemetry() {
-	for  {
+	for {
 		log.Trace("sending telemetry")
 
 		peers, err := c.beaconClient.GetPeerCount()
@@ -143,8 +142,15 @@ func (c *Core) sendTelemetry() {
 		}
 		log.Tracef("peers: %d", peers)
 
+		syncing, err := c.beaconClient.GetSyncStatus()
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Tracef("node syncing: %s", syncing)
+
 		_, err = c.stats.Telemetry(c.contextWithToken(), &proto.TelemetryRequest{
-			Peers: peers,
+			Peers:   peers,
+			Syncing: syncing,
 		})
 		if err != nil {
 			log.Fatal(err)
