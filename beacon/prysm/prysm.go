@@ -72,6 +72,16 @@ func (c *BeaconClient) GetPeerCount() (int64, error) {
 	return int64(len(peers.Peers)), nil
 }
 
+func (c *BeaconClient) GetAttestationsInPoolCount() (int64, error) {
+	attestations, err := c.beacon.AttestationPool(context.Background(), &empty.Empty{})
+	if err != nil {
+		log.Error(err)
+		return 0, err
+	}
+
+	return int64(len(attestations.Attestations)), nil
+}
+
 func (c *BeaconClient) GetSyncStatus() (bool, error) {
 	sync, err := c.node.GetSyncStatus(context.Background(), &empty.Empty{})
 	if err != nil {
