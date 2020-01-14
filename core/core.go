@@ -142,15 +142,22 @@ func (c *Core) sendTelemetry() {
 		}
 		log.Tracef("peers: %d", peers)
 
+		attestations, err := c.beaconClient.GetAttestationsInPoolCount()
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Tracef("attestations: %d", attestations)
+
 		syncing, err := c.beaconClient.GetSyncStatus()
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Tracef("node syncing: %s", syncing)
+		log.Tracef("node syncing: %t", syncing)
 
 		_, err = c.stats.Telemetry(c.contextWithToken(), &proto.TelemetryRequest{
-			Peers:   peers,
-			Syncing: syncing,
+			Peers:              peers,
+			AttestationsInPool: attestations,
+			Syncing:            syncing,
 		})
 		if err != nil {
 			log.Fatal(err)

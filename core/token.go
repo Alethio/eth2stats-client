@@ -11,7 +11,7 @@ import (
 
 const TokenFile = "token.dat"
 
-func  (c *Core) searchToken() error {
+func (c *Core) searchToken() error {
 	log.Debug("looking for existing token")
 	fileName := path.Join(c.config.DataFolder, TokenFile)
 	dat, err := ioutil.ReadFile(fileName)
@@ -29,7 +29,7 @@ func  (c *Core) searchToken() error {
 	return nil
 }
 
-func  (c *Core) writeToken(token string) error {
+func (c *Core) writeToken(token string) error {
 	fileName := path.Join(c.config.DataFolder, TokenFile)
 	log.Debug("persisting token to disk")
 	_ = os.MkdirAll(c.config.DataFolder, os.ModePerm)
