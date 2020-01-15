@@ -25,9 +25,12 @@ var runCmd = &cobra.Command{
 				TLS:        viper.GetBool("eth2stats.tls"),
 				NodeName:   viper.GetString("eth2stats.node-name"),
 			},
-			BeaconNodeType: viper.GetString("beacon.type"),
-			BeaconNodeAddr: viper.GetString("beacon.addr"),
-			DataFolder:     viper.GetString("data.folder"),
+			BeaconNode: core.BeaconNodeConfig{
+				Type:        viper.GetString("beacon.type"),
+				Addr:        viper.GetString("beacon.addr"),
+				MetricsAddr: viper.GetString("beacon.metrics-addr"),
+			},
+			DataFolder: viper.GetString("data.folder"),
 		})
 		go c.Run()
 
@@ -57,6 +60,9 @@ func init() {
 
 	runCmd.Flags().String("beacon.addr", "", "Beacon node endpoint address")
 	viper.BindPFlag("beacon.addr", runCmd.Flag("beacon.addr"))
+
+	runCmd.Flags().String("beacon.metrics-addr", "", "The url where the beacon client exposes metrics (used for memory usage)")
+	viper.BindPFlag("beacon.metrics-addr", runCmd.Flag("beacon.metrics-addr"))
 
 	runCmd.Flags().String("data.folder", "./data", "Folder in which to persist data")
 	viper.BindPFlag("data.folder", runCmd.Flag("data.folder"))

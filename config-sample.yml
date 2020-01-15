@@ -7,5 +7,11 @@ eth2stats:
   tls: true
 
 beacon:
+  # Beacon node type [supported: prysm]
   type: "prysm"
+
+  # Beacon node endpoint address
   addr: "localhost:8545"
+
+  # The url where the beacon client exposes metrics (used for memory usage)
+  metrics-addr: "http://localhost:8080/metrics"
