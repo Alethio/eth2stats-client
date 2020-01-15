@@ -9,11 +9,13 @@
 - [ ] Prysm
   - [x] GRPC
   - [ ] HTTP
+- [ ] Lighthouse
+- [ ] Artemis
 - [ ] ...
   
 ## Current live deployments:
 
-- [https://sapphire.eth2stats.net/](https://sapphire.eth2stats.net/) - [Prysm Sapphire Testnet](https://prylabs.net/participate)
+- [https://sapphire.eth2stats.net/](https://sapphire.eth2stats.net/) - Showing stats for Prysmatic Labs's [Sapphire Testnet](https://prylabs.net/participate)
 
 ## Getting Started (Prysm Sapphire Testnet)
 
