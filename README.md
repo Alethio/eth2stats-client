@@ -31,7 +31,7 @@ docker run -d --name eth2stats --restart always --network="host" \
       --eth2stats.node-name="YourNode" \
       --data.folder="/data" \
       --eth2stats.addr="grpc.sapphire.eth2stats.net:443" --eth2stats.tls=true \
-      --beacon.type="prysm" --beacon.addr="beacon.eth2stats.net:8545"
+      --beacon.type="prysm" --beacon.addr="localhost:4000"
 ```
 
 You should now be able to see your node and it's stats on [eth2stats](https://sapphire.eth2stats.net).
