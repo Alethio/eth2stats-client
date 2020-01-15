@@ -5,6 +5,7 @@ import (
 
 	proto "github.com/alethio/eth2stats-proto"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
 
 	"github.com/alethio/eth2stats-client/beacon"
@@ -100,17 +101,23 @@ func (c *Core) watchNewHeads() {
 			log.Fatal(err)
 		}
 
+		limiter := rate.NewLimiter(1, 1)
+
 		for msg := range sub.Channel() {
-			_, err := c.stats.ChainHead(c.contextWithToken(), &proto.ChainHeadRequest{
-				HeadSlot:           msg.HeadSlot,
-				HeadBlockRoot:      msg.HeadBlockRoot,
-				FinalizedSlot:      msg.FinalizedSlot,
-				FinalizedBlockRoot: msg.FinalizedBlockRoot,
-				JustifiedSlot:      msg.JustifiedSlot,
-				JustifiedBlockRoot: msg.JustifiedBlockRoot,
-			})
-			if err != nil {
-				log.Fatal(err)
+			if limiter.Allow() {
+				_, err := c.stats.ChainHead(c.contextWithToken(), &proto.ChainHeadRequest{
+					HeadSlot:           msg.HeadSlot,
+					HeadBlockRoot:      msg.HeadBlockRoot,
+					FinalizedSlot:      msg.FinalizedSlot,
+					FinalizedBlockRoot: msg.FinalizedBlockRoot,
+					JustifiedSlot:      msg.JustifiedSlot,
+					JustifiedBlockRoot: msg.JustifiedBlockRoot,
+				})
+				if err != nil {
+					log.Fatal(err)
+				}
+			} else {
+				log.Warn("ChainHead request was skipped due to rate limiting")
 			}
 		}
 
