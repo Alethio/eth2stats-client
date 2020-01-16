@@ -2,6 +2,7 @@ package telemetry
 
 import (
 	"context"
+	"math"
 	"time"
 
 	proto "github.com/alethio/eth2stats-proto"
@@ -48,7 +49,7 @@ func (t *Telemetry) Run() {
 
 		log.Trace("done sending telemetry")
 
-		time.Sleep(TelemetryInterval)
+		time.Sleep(PollingInterval)
 	}
 }
 
@@ -106,7 +107,7 @@ func (t *Telemetry) pollSyncing() {
 func (t *Telemetry) pollMemUsage() {
 	memUsagePointer := t.metricsWatcher.GetMemUsage()
 	if memUsagePointer != nil {
-		if t.data.MemoryUsage == nil || *t.data.MemoryUsage != *memUsagePointer {
+		if t.data.MemoryUsage == nil || (math.Abs(float64(*t.data.MemoryUsage-*memUsagePointer)) > MemoryUsageThreshold) {
 			t.data.MemoryUsage = memUsagePointer
 
 			_, err := t.service.MemoryUsage(t.contextWithToken(), &proto.MemoryUsageRequest{MemoryUsage: *memUsagePointer})
