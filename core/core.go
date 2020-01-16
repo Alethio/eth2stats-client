@@ -103,7 +103,7 @@ func (c *Core) connectToServer() {
 	}
 	log.WithField("headSlot", head.HeadSlot).Info("got chain head")
 
-	_, err = c.stats.ChainHead(c.contextWithToken(), &proto.ChainHeadRequest{
+	_, err = c.statsService.ChainHead(c.contextWithToken(), &proto.ChainHeadRequest{
 		HeadSlot:           head.HeadSlot,
 		HeadBlockRoot:      head.HeadBlockRoot,
 		FinalizedSlot:      head.FinalizedSlot,
