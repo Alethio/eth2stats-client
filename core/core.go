@@ -104,6 +104,25 @@ func (c *Core) connectToServer() {
 
 	c.updateToken(resp.Token)
 
+	log.Info("getting chain head for initial feed")
+	head, err := c.beaconClient.GetChainHead()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.WithField("headSlot", head.HeadSlot).Info("got chain head")
+
+	_, err = c.stats.ChainHead(c.contextWithToken(), &proto.ChainHeadRequest{
+		HeadSlot:           head.HeadSlot,
+		HeadBlockRoot:      head.HeadBlockRoot,
+		FinalizedSlot:      head.FinalizedSlot,
+		FinalizedBlockRoot: head.FinalizedBlockRoot,
+		JustifiedSlot:      head.JustifiedSlot,
+		JustifiedBlockRoot: head.JustifiedBlockRoot,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	log.Info("successfully connected to eth2stats server")
 }
 
