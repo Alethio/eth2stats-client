@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/alethio/eth2stats-client/beacon"
+	"github.com/alethio/eth2stats-client/core/telemetry"
 	metricsWatcher "github.com/alethio/eth2stats-client/watcher/metrics"
 )
 
@@ -34,31 +35,22 @@ type Config struct {
 
 type Core struct {
 	config Config
+	token  string
 
-	stats          proto.Eth2StatsClient
+	statsService     proto.Eth2StatsClient
+	telemetryService proto.TelemetryClient
+
 	beaconClient   beacon.Client
 	metricsWatcher *metricsWatcher.Watcher
-
-	token string
-
-	heartbeatActive bool
-	heartbeatStop   chan bool
-
-	newHeadsWatchActive bool
-	newHeadsWatchStop   chan bool
-
-	restartChan chan bool
-	stopChan    chan bool
 }
 
 func New(config Config) *Core {
 	c := Core{
 		config:       config,
-		stats:        initEth2statsClient(config.Eth2stats),
 		beaconClient: initBeaconClient(config.BeaconNode.Type, config.BeaconNode.Addr),
-		restartChan:  make(chan bool),
-		stopChan:     make(chan bool),
 	}
+
+	c.initEth2statsClient()
 
 	if config.BeaconNode.MetricsAddr != "" {
 		c.metricsWatcher = metricsWatcher.New(metricsWatcher.Config{
@@ -93,7 +85,7 @@ func (c *Core) connectToServer() {
 	log.WithField("genesisTime", genesisTime).Info("got beacon client genesis time")
 
 	log.Info("awaiting connection to eth2stats server")
-	resp, err := c.stats.Connect(c.contextWithToken(), &proto.ConnectRequest{
+	resp, err := c.statsService.Connect(c.contextWithToken(), &proto.ConnectRequest{
 		Name:        c.config.Eth2stats.NodeName,
 		Version:     version,
 		GenesisTime: genesisTime,
@@ -119,7 +111,7 @@ func (c *Core) watchNewHeads() {
 
 		for msg := range sub.Channel() {
 			if limiter.Allow() {
-				_, err := c.stats.ChainHead(c.contextWithToken(), &proto.ChainHeadRequest{
+				_, err := c.statsService.ChainHead(c.contextWithToken(), &proto.ChainHeadRequest{
 					HeadSlot:           msg.HeadSlot,
 					HeadBlockRoot:      msg.HeadBlockRoot,
 					FinalizedSlot:      msg.FinalizedSlot,
@@ -143,7 +135,7 @@ func (c *Core) sendHeartbeat() {
 	for range time.Tick(HeartbeatInterval) {
 		log.Trace("sending heartbeat")
 
-		_, err := c.stats.Heartbeat(c.contextWithToken(), &proto.HeartbeatRequest{})
+		_, err := c.statsService.Heartbeat(c.contextWithToken(), &proto.HeartbeatRequest{})
 		if err != nil {
 			log.Fatal(err)
 
@@ -153,30 +145,13 @@ func (c *Core) sendHeartbeat() {
 	}
 }
 
-func (c *Core) sendTelemetry() {
-	t := Telemetry{beaconClient: c.beaconClient, metricsWatcher: c.metricsWatcher}
-
-	for {
-		log.Trace("sending telemetry")
-
-		_, err := c.stats.Telemetry(c.contextWithToken(), t.BuildRequest())
-		if err != nil {
-			log.Fatal(err)
-
-			continue
-		}
-
-		log.Trace("done sending telemetry")
-
-		time.Sleep(TelemetryInterval)
-	}
-}
-
 func (c *Core) Run() {
 	c.connectToServer()
 	go c.sendHeartbeat()
 	go c.watchNewHeads()
-	go c.sendTelemetry()
+
+	t := telemetry.New(c.telemetryService, c.beaconClient, c.metricsWatcher, c.contextWithToken)
+	go t.Run()
 }
 
 func (c *Core) Close() {

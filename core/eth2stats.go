@@ -8,21 +8,22 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-func initEth2statsClient(config Eth2statsConfig) proto.Eth2StatsClient {
+func (c *Core) initEth2statsClient() {
 	log.Info("setting up eth2stats server connection")
 
 	var conn *grpc.ClientConn
 	var err error
 
-	if config.TLS {
+	if c.config.Eth2stats.TLS {
 		tlsConfig := &tls.Config{}
-		conn, err = grpc.Dial(config.ServerAddr, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+		conn, err = grpc.Dial(c.config.Eth2stats.ServerAddr, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
 	} else {
-		conn, err = grpc.Dial(config.ServerAddr, grpc.WithInsecure())
+		conn, err = grpc.Dial(c.config.Eth2stats.ServerAddr, grpc.WithInsecure())
 	}
 	if err != nil {
 		log.Fatalf("fail to dial: %v", err)
 	}
 
-	return proto.NewEth2StatsClient(conn)
+	c.statsService = proto.NewEth2StatsClient(conn)
+	c.telemetryService = proto.NewTelemetryClient(conn)
 }

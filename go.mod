@@ -1,7 +1,7 @@
 module github.com/alethio/eth2stats-client
 
 require (
-	github.com/alethio/eth2stats-proto v0.0.0-20200115130524-ff880702df2f
+	github.com/alethio/eth2stats-proto v0.0.0-20200116142120-d918872e6a6e
 	github.com/davecgh/go-spew v1.1.1
 	github.com/gin-gonic/gin v1.5.0
 	github.com/golang/protobuf v1.3.2
