@@ -2,6 +2,7 @@ package prysm
 
 import (
 	"context"
+	"encoding/hex"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	prysmAPI "github.com/prysmaticlabs/ethereumapis/eth/v1alpha1"
@@ -9,6 +10,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/alethio/eth2stats-client/beacon"
+	"github.com/alethio/eth2stats-client/types"
 )
 
 var log = logrus.WithField("module", "prysm")
@@ -90,6 +92,23 @@ func (c *BeaconClient) GetSyncStatus() (bool, error) {
 	}
 
 	return sync.GetSyncing(), nil
+}
+
+func (c *BeaconClient) GetChainHead() (*types.ChainHead, error) {
+	head, err := c.beacon.GetChainHead(context.Background(), &empty.Empty{})
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	return &types.ChainHead{
+		HeadSlot:           head.HeadSlot,
+		HeadBlockRoot:      hex.EncodeToString(head.HeadBlockRoot),
+		FinalizedSlot:      head.FinalizedSlot,
+		FinalizedBlockRoot: hex.EncodeToString(head.FinalizedBlockRoot),
+		JustifiedSlot:      head.JustifiedSlot,
+		JustifiedBlockRoot: hex.EncodeToString(head.JustifiedBlockRoot),
+	}, nil
 }
 
 func (c *BeaconClient) SubscribeChainHeads() (beacon.ChainHeadSubscription, error) {

@@ -15,6 +15,7 @@ type Client interface {
 	GetPeerCount() (int64, error)
 	GetAttestationsInPoolCount() (int64, error)
 	GetSyncStatus() (bool, error)
+	GetChainHead() (*types.ChainHead, error)
 
 	SubscribeChainHeads() (ChainHeadSubscription, error)
 }
