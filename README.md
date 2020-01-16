@@ -38,6 +38,8 @@ docker run -d --name eth2stats --restart always --network="host" \
 
 You should now be able to see your node and it's stats on [eth2stats](https://sapphire.eth2stats.net).
 
+If you want to see your beacon node client's memory usage as well, make sure you have metrics enabled in Prysm and add this cli argument, pointing at the right host `--beacon.metrics-addr="http://localhost:8080/metrics"`.
+
 ## Building from source
 ### Prerequisites
 - a working Golang environment (tested with go v1.13.5)
@@ -65,3 +67,5 @@ make build
                    --eth2stats.addr="grpc.sapphire.eth2stats.net:443" --eth2stats.tls=true \
                    --beacon.type="prysm" --beacon.addr="localhost:4000"
 ```
+
+If you want to see your beacon node client's memory usage as well, make sure you have metrics enabled in Prysm and add this cli argument, pointing at the right host `--beacon.metrics-addr="http://localhost:8080/metrics"`.
