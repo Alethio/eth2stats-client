@@ -15,7 +15,7 @@
   
 ## Current live deployments:
 
-- [https://sapphire.eth2stats.net/](https://sapphire.eth2stats.net/) - Showing stats for Prysmatic Labs's [Sapphire Testnet](https://prylabs.net/participate)
+- [https://eth2stats.io/](https://eth2stats.io/) - Our main deployment. Will add new testnets to this as they arrive.
 
 ## Getting Started (Prysm Sapphire Testnet)
 
