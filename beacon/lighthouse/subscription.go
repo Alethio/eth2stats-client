@@ -32,7 +32,6 @@ func (s *ChainHeadSubscription) Start() {
 			close(s.data)
 			return
 		default:
-			log.Info("head")
 			head, err := s.client.GetChainHead()
 			if err != nil {
 				log.Errorf("failed to poll for chain head")
