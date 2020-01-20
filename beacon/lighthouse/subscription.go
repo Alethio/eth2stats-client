@@ -48,7 +48,7 @@ func (s *ChainHeadSubscription) Start() {
 					JustifiedSlot:      head.JustifiedSlot,
 					JustifiedBlockRoot: head.JustifiedBlockRoot,
 				}
-				*lastHead = *head
+				lastHead = head
 			}
 
 			time.Sleep(time.Second)
