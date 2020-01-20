@@ -10,12 +10,12 @@ import (
 
 type ChainHeadSubscription struct {
 	data   chan types.ChainHead
-	client *LighthouseClient
+	client *LighthouseHTTPClient
 
 	stopChan chan bool
 }
 
-func NewChainHeadSubscription(client *LighthouseClient) *ChainHeadSubscription {
+func NewChainHeadSubscription(client *LighthouseHTTPClient) *ChainHeadSubscription {
 	return &ChainHeadSubscription{
 		data:   make(chan types.ChainHead),
 		client: client,

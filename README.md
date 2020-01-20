@@ -10,6 +10,8 @@
   - [x] GRPC
   - [ ] HTTP
 - [ ] Lighthouse
+  - [X] HTTP
+  - [ ] Websockets
 - [ ] Artemis
 - [ ] ...
   
@@ -62,7 +64,6 @@ make build
 **Run**
 ```shell script
 ./eth2stats-client run \
-                   --data.folder="/data" \
                    --eth2stats.node-name="YourNode" \
                    --eth2stats.addr="grpc.sapphire.eth2stats.net:443" --eth2stats.tls=true \
                    --beacon.type="prysm" --beacon.addr="localhost:4000"

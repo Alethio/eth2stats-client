@@ -2,9 +2,7 @@ package lighthouse
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"strconv"
 
 	"github.com/dghubble/sling"
 
@@ -12,51 +10,32 @@ import (
 	"github.com/alethio/eth2stats-client/types"
 )
 
-type LighthouseClient struct {
+type LighthouseHTTPClient struct {
 	api    *sling.Sling
 	client *http.Client
 }
 
-func (s *LighthouseClient) Get(path string) ([]byte, error) {
-	req, err := s.api.New().Get(path).Request()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := s.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return body, nil
-}
-
-func (s *LighthouseClient) GetVersion() (string, error) {
+func (s *LighthouseHTTPClient) GetVersion() (string, error) {
 	path := fmt.Sprintf("node/version")
-	body, err := s.Get(path)
-
-	return string(body), err
+	version := new(string)
+	_, err := s.api.New().Get(path).ReceiveSuccess(version)
+	if err != nil {
+		return "", err
+	}
+	return *version, nil
 }
 
-func (s *LighthouseClient) GetGenesisTime() (int64, error) {
+func (s *LighthouseHTTPClient) GetGenesisTime() (int64, error) {
 	path := fmt.Sprintf("beacon/genesis_time")
-	body, err := s.Get(path)
+	genesis := new(int64)
+	_, err := s.api.New().Get(path).ReceiveSuccess(genesis)
 	if err != nil {
 		return 0, err
 	}
-	timestamp, err := strconv.ParseInt(string(body), 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return timestamp, nil
+	return *genesis, nil
 }
 
-func (s *LighthouseClient) GetPeerCount() (int64, error) {
+func (s *LighthouseHTTPClient) GetPeerCount() (int64, error) {
 	path := fmt.Sprintf("network/peers")
 	peers := new([]string)
 	_, err := s.api.New().Get(path).ReceiveSuccess(peers)
@@ -66,15 +45,15 @@ func (s *LighthouseClient) GetPeerCount() (int64, error) {
 	return int64(len(*peers)), nil
 }
 
-func (s *LighthouseClient) GetAttestationsInPoolCount() (int64, error) {
+func (s *LighthouseHTTPClient) GetAttestationsInPoolCount() (int64, error) {
 	return 0, beacon.NotAvailable
 }
 
-func (s *LighthouseClient) GetSyncStatus() (bool, error) {
+func (s *LighthouseHTTPClient) GetSyncStatus() (bool, error) {
 	return false, beacon.NotAvailable
 }
 
-func (s *LighthouseClient) GetChainHead() (*types.ChainHead, error) {
+func (s *LighthouseHTTPClient) GetChainHead() (*types.ChainHead, error) {
 	path := fmt.Sprintf("beacon/head")
 	type chainHead struct {
 		HeadSlot           uint64 `json:"slot"`
@@ -95,15 +74,15 @@ func (s *LighthouseClient) GetChainHead() (*types.ChainHead, error) {
 	return &typesChainHead, nil
 }
 
-func (c *LighthouseClient) SubscribeChainHeads() (beacon.ChainHeadSubscription, error) {
+func (c *LighthouseHTTPClient) SubscribeChainHeads() (beacon.ChainHeadSubscription, error) {
 	sub := NewChainHeadSubscription(c)
 	go sub.Start()
 
 	return sub, nil
 }
 
-func New(httpClient *http.Client, baseURL string) *LighthouseClient {
-	return &LighthouseClient{
+func New(httpClient *http.Client, baseURL string) *LighthouseHTTPClient {
+	return &LighthouseHTTPClient{
 		api:    sling.New().Client(httpClient).Base(baseURL),
 		client: httpClient,
 	}

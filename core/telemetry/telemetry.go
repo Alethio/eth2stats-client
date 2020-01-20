@@ -73,6 +73,10 @@ func (t *Telemetry) pollPeers() {
 func (t *Telemetry) pollAttestations() {
 	attestations, err := t.beaconClient.GetAttestationsInPoolCount()
 	if err != nil {
+		if err == beacon.NotAvailable {
+			// feature not available, skip
+			return
+		}
 		log.Fatal(err)
 	}
 	log.Tracef("attestations: %d", attestations)
@@ -90,6 +94,10 @@ func (t *Telemetry) pollAttestations() {
 func (t *Telemetry) pollSyncing() {
 	syncing, err := t.beaconClient.GetSyncStatus()
 	if err != nil {
+		if err == beacon.NotAvailable {
+			// feature not available, skip
+			return
+		}
 		log.Fatal(err)
 	}
 	log.Tracef("node syncing: %t", syncing)
