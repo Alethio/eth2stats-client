@@ -95,6 +95,13 @@ func (s *LighthouseClient) GetChainHead() (*types.ChainHead, error) {
 	return &typesChainHead, nil
 }
 
+func (c *LighthouseClient) SubscribeChainHeads() (beacon.ChainHeadSubscription, error) {
+	sub := NewChainHeadSubscription(c)
+	go sub.Start()
+
+	return sub, nil
+}
+
 func New(httpClient *http.Client, baseURL string) *LighthouseClient {
 	return &LighthouseClient{
 		api:    sling.New().Client(httpClient).Base(baseURL),
