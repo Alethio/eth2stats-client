@@ -3,7 +3,6 @@ package lighthouse
 import (
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/prometheus/common/log"
 
 	"github.com/alethio/eth2stats-client/types"
@@ -25,6 +24,7 @@ func NewChainHeadSubscription(client *LighthouseClient) *ChainHeadSubscription {
 
 func (s *ChainHeadSubscription) Start() {
 	log.Info("polling for new heads")
+	var lastHead *types.ChainHead
 
 	for {
 		select {
@@ -33,15 +33,23 @@ func (s *ChainHeadSubscription) Start() {
 			return
 		default:
 			log.Info("head")
-			spew.Dump(s.client.GetChainHead())
-			// s.data <- types.ChainHead{
-			// 	HeadSlot:           data.HeadSlot,
-			// 	HeadBlockRoot:      hex.EncodeToString(data.HeadBlockRoot),
-			// 	FinalizedSlot:      data.FinalizedSlot,
-			// 	FinalizedBlockRoot: hex.EncodeToString(data.FinalizedBlockRoot),
-			// 	JustifiedSlot:      data.JustifiedSlot,
-			// 	JustifiedBlockRoot: hex.EncodeToString(data.JustifiedBlockRoot),
-			// }
+			head, err := s.client.GetChainHead()
+			if err != nil {
+				log.Errorf("failed to poll for chain head")
+				close(s.data)
+				return
+			}
+			if lastHead == nil || *lastHead != *head {
+				s.data <- types.ChainHead{
+					HeadSlot:           head.HeadSlot,
+					HeadBlockRoot:      head.HeadBlockRoot,
+					FinalizedSlot:      head.FinalizedSlot,
+					FinalizedBlockRoot: head.FinalizedBlockRoot,
+					JustifiedSlot:      head.JustifiedSlot,
+					JustifiedBlockRoot: head.JustifiedBlockRoot,
+				}
+				*lastHead = *head
+			}
 
 			time.Sleep(time.Second)
 		}
