@@ -7,7 +7,7 @@ import (
 )
 
 // Error to use when a  call is not available
-var NotAvailable = errors.New("Feature is not available")
+var NotImplemented = errors.New("Feature is not available")
 
 type ChainHeadSubscription interface {
 	Channel() <-chan types.ChainHead

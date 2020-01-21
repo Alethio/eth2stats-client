@@ -49,11 +49,11 @@ func (s *LighthouseHTTPClient) GetPeerCount() (int64, error) {
 }
 
 func (s *LighthouseHTTPClient) GetAttestationsInPoolCount() (int64, error) {
-	return 0, beacon.NotAvailable
+	return 0, beacon.NotImplemented
 }
 
 func (s *LighthouseHTTPClient) GetSyncStatus() (bool, error) {
-	return false, beacon.NotAvailable
+	return false, beacon.NotImplemented
 }
 
 func (s *LighthouseHTTPClient) GetChainHead() (*types.ChainHead, error) {
