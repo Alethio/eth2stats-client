@@ -5,5 +5,5 @@ import (
 )
 
 const (
-	HeartbeatInterval = 5 * time.Second
+	HeartbeatInterval = 12 * time.Second
 )
