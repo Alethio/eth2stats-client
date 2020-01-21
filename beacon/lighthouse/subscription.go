@@ -6,6 +6,10 @@ import (
 	"github.com/alethio/eth2stats-client/types"
 )
 
+const (
+	PollingInterval = time.Second
+)
+
 type ChainHeadSubscription struct {
 	data   chan types.ChainHead
 	client *LighthouseHTTPClient
@@ -48,7 +52,7 @@ func (s *ChainHeadSubscription) Start() {
 				lastHead = head
 			}
 
-			time.Sleep(time.Second)
+			time.Sleep(PollingInterval)
 		}
 	}
 }
