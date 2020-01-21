@@ -5,10 +5,13 @@ import (
 	"net/http"
 
 	"github.com/dghubble/sling"
+	"github.com/sirupsen/logrus"
 
 	"github.com/alethio/eth2stats-client/beacon"
 	"github.com/alethio/eth2stats-client/types"
 )
+
+var log = logrus.WithField("module", "lighthouse")
 
 type LighthouseHTTPClient struct {
 	api    *sling.Sling

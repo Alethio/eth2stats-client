@@ -3,8 +3,6 @@ package lighthouse
 import (
 	"time"
 
-	"github.com/prometheus/common/log"
-
 	"github.com/alethio/eth2stats-client/types"
 )
 
