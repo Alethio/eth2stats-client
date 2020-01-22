@@ -1,7 +1,7 @@
 module github.com/alethio/eth2stats-client
 
 require (
-	github.com/alethio/eth2stats-proto v0.0.0-20200116142120-d918872e6a6e
+	github.com/alethio/eth2stats-proto v0.0.0-20200122120216-4625b646ae41
 	github.com/dghubble/sling v1.3.0
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect
 	github.com/gin-gonic/gin v1.5.0
@@ -20,7 +20,7 @@ require (
 	golang.org/x/sys v0.0.0-20200122134326-e047566fdf82 // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
-	google.golang.org/genproto v0.0.0-20200113173426-e1de0a7b01eb // indirect
+	google.golang.org/genproto v0.0.0-20200117163144-32f20d992d24 // indirect
 	google.golang.org/grpc v1.26.0
 	moul.io/http2curl v1.0.0 // indirect
 )

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -21,6 +22,7 @@ var runCmd = &cobra.Command{
 
 		c := core.New(core.Config{
 			Eth2stats: core.Eth2statsConfig{
+				Version:    fmt.Sprintf("eth2stats-client/%s", RootCmd.Version),
 				ServerAddr: viper.GetString("eth2stats.addr"),
 				TLS:        viper.GetBool("eth2stats.tls"),
 				NodeName:   viper.GetString("eth2stats.node-name"),

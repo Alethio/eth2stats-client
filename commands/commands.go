@@ -17,46 +17,46 @@ var (
 	version           bool
 	verbose, vverbose bool
 	fullTimestamps    bool
-
-	RootCmd = &cobra.Command{
-		Use:   "eth2stats-client",
-		Short: "Client for eth2stats",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			if config != "" {
-				// get the filepath
-				abs, err := filepath.Abs(config)
-				if err != nil {
-					log.Error("Error reading filepath: ", err.Error())
-				}
-
-				// get the config name
-				base := filepath.Base(abs)
-
-				// get the path
-				path := filepath.Dir(abs)
-
-				//
-				viper.SetConfigName(strings.Split(base, ".")[0])
-				viper.AddConfigPath(path)
-			}
-
-			viper.AddConfigPath(".")
-
-			// Find and read the config file; Handle errors reading the config file
-			if err := viper.ReadInConfig(); err != nil {
-				log.Info("Could not load config file. Falling back to args. Error: ", err)
-			}
-
-			initLogging()
-		},
-
-		Run: func(cmd *cobra.Command, args []string) {
-
-			// fall back on default help if no args/flags are passed
-			cmd.HelpFunc()(cmd, args)
-		},
-	}
 )
+
+var RootCmd = &cobra.Command{
+	Use:   "eth2stats-client",
+	Short: "Client for eth2stats",
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		if config != "" {
+			// get the filepath
+			abs, err := filepath.Abs(config)
+			if err != nil {
+				log.Error("Error reading filepath: ", err.Error())
+			}
+
+			// get the config name
+			base := filepath.Base(abs)
+
+			// get the path
+			path := filepath.Dir(abs)
+
+			//
+			viper.SetConfigName(strings.Split(base, ".")[0])
+			viper.AddConfigPath(path)
+		}
+
+		viper.AddConfigPath(".")
+
+		// Find and read the config file; Handle errors reading the config file
+		if err := viper.ReadInConfig(); err != nil {
+			log.Info("Could not load config file. Falling back to args. Error: ", err)
+		}
+
+		initLogging()
+	},
+
+	Run: func(cmd *cobra.Command, args []string) {
+
+		// fall back on default help if no args/flags are passed
+		cmd.HelpFunc()(cmd, args)
+	},
+}
 
 func init() {
 	cobra.OnInitialize(func() {

@@ -16,6 +16,7 @@ import (
 var log = logrus.WithField("module", "core")
 
 type Eth2statsConfig struct {
+	Version    string
 	ServerAddr string
 	TLS        bool
 	NodeName   string
@@ -86,9 +87,10 @@ func (c *Core) connectToServer() {
 
 	log.Info("awaiting connection to eth2stats server")
 	resp, err := c.statsService.Connect(c.contextWithToken(), &proto.ConnectRequest{
-		Name:        c.config.Eth2stats.NodeName,
-		Version:     version,
-		GenesisTime: genesisTime,
+		Name:             c.config.Eth2stats.NodeName,
+		Version:          version,
+		GenesisTime:      genesisTime,
+		Eth2StatsVersion: c.config.Eth2stats.Version,
 	}, grpc.WaitForReady(true))
 	if err != nil {
 		log.Fatal(err)
