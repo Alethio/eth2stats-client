@@ -35,8 +35,10 @@ func initLogging() {
 			gin.SetMode(gin.ReleaseMode)
 		}
 	}
-
-	f, err := formatter.New(modules)
+	logrusFormatter := &logrus.TextFormatter{
+		FullTimestamp: fullTimestamps,
+	}
+	f, err := formatter.NewWithFormatter(modules, logrusFormatter)
 	if err != nil {
 		panic(err)
 	}

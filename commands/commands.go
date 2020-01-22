@@ -16,6 +16,7 @@ var (
 	config            string
 	version           bool
 	verbose, vverbose bool
+	fullTimestamps    bool
 
 	RootCmd = &cobra.Command{
 		Use:   "eth2stats-client",
@@ -71,6 +72,9 @@ func init() {
 
 	RootCmd.PersistentFlags().String("logging", "", "Display debug messages")
 	viper.BindPFlag("logging", RootCmd.Flag("logging"))
+
+	RootCmd.PersistentFlags().BoolVar(&fullTimestamps, "logging.full-timestamps", false, "Display full timestamps in interactive consoles")
+	viper.BindPFlag("logging.full-timestamps", RootCmd.Flag("logging.full-timestamps"))
 
 	// local flags;
 	RootCmd.Flags().BoolVar(&version, "version", false, "Display the current version of this CLI")
