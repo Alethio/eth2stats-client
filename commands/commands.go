@@ -14,7 +14,6 @@ var log = logrus.WithField("module", "main")
 
 var (
 	config            string
-	version           bool
 	verbose, vverbose bool
 
 	RootCmd = &cobra.Command{
@@ -71,9 +70,6 @@ func init() {
 
 	RootCmd.PersistentFlags().String("logging", "", "Display debug messages")
 	viper.BindPFlag("logging", RootCmd.Flag("logging"))
-
-	// local flags;
-	RootCmd.Flags().BoolVar(&version, "version", false, "Display the current version of this CLI")
 
 	// commands
 	RootCmd.AddCommand(runCmd)
