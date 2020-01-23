@@ -19,28 +19,50 @@
 
 - [https://eth2stats.io/](https://eth2stats.io/) - Our main deployment. Will add new testnets to this as they arrive.
 
-## Getting Started (Prysm Sapphire Testnet)
+## Getting Started
+
+The following section uses Docker to run. If you want to build from source go [here](#building-from-source).
+
+The most important variable to change is **`--eth2stats.node-name`** which will define what name your node has on [eth2stats](https://eth2stats.io).
+
+
+###  Prysm Sapphire Testnet
 
 The first thing you should do is get a beacon chain client node running and connected to said beacon chain by joining the [Prysm Sapphire Testnet](https://prylabs.net/participate).
 
-Then you can run the following Docker command to start sending stats to [eth2stats](https://sapphire.eth2stats.net).  
-**Please update your `--eth2stats.node-name` arg before starting the cli tool.**
-**Please update your `--data-folder` arg before starting the cli tool.**
+You can then get eth2stats sending data by running the following command:
 
 ```shell script
 docker run -d --name eth2stats --restart always --network="host" \
       -v ~/eth2stats/data:/data \
       alethio/eth2stats-client:latest \
       run --v \
-      --eth2stats.node-name="YourNode" \
+      --eth2stats.node-name="YourPrysmNode" \
       --data.folder="/data" \
       --eth2stats.addr="grpc.sapphire.eth2stats.io:443" --eth2stats.tls=true \
       --beacon.type="prysm" --beacon.addr="localhost:4000"
 ```
 
-You should now be able to see your node and it's stats on [eth2stats](https://sapphire.eth2stats.net).
-
 If you want to see your beacon node client's memory usage as well, make sure you have metrics enabled in Prysm and add this cli argument, pointing at the right host `--beacon.metrics-addr="http://localhost:8080/metrics"`.
+
+### Lighthouse Testnet
+The first thing you should do is get a beacon chain client node running and connected to said beacon chain by joining the [Lighthouse Testnet](https://lighthouse-book.sigmaprime.io/become-a-validator.html).
+
+You can then get eth2stats sending data by running the following command: 
+
+```shell script
+docker run -d --name eth2stats --restart always --network="host" \
+      -v ~/eth2stats/data:/data \
+      alethio/eth2stats-client:latest \
+      run --v \
+      --eth2stats.node-name="YourLighthouseNode" \
+      --data.folder="/data" \
+      --eth2stats.addr="grpc.summer.eth2stats.io:443" --eth2stats.tls=true \
+      --beacon.type="lighthouse" --beacon.addr="http://localhost:5052"
+```
+
+You should now be able to see your node and it's stats on [eth2stats](https://eth2stats.io).
+
 
 ## Building from source
 ### Prerequisites
@@ -62,11 +84,21 @@ make build
 ```
 
 **Run**
+
+Example for Prysm:
 ```shell script
 ./eth2stats-client run \
                    --eth2stats.node-name="YourNode" \
                    --eth2stats.addr="grpc.sapphire.eth2stats.io:443" --eth2stats.tls=true \
                    --beacon.type="prysm" --beacon.addr="localhost:4000"
+```
+
+Example for Lighthouse:
+```shell script
+./eth2stats-client run \
+                   --eth2stats.node-name="YourNode" \
+                   --eth2stats.addr="grpc.summer.eth2stats.io:443" --eth2stats.tls=true \
+                   --beacon.type="lighthouse" --beacon.addr="localhost:5052"
 ```
 
 If you want to see your beacon node client's memory usage as well, make sure you have metrics enabled in Prysm and add this cli argument, pointing at the right host `--beacon.metrics-addr="http://localhost:8080/metrics"`.
