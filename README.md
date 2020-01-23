@@ -2,7 +2,7 @@
 
 > This is an intial POC release of the eth2stats network monitoring suite
 > 
-> Currently it supports just Prysm and their public testnet.
+> Currently it supports Prysm and Lighthouse.
 > More to come soon.
 
 ## Supported clients and protocols:
@@ -34,7 +34,7 @@ docker run -d --name eth2stats --restart always --network="host" \
       run --v \
       --eth2stats.node-name="YourNode" \
       --data.folder="/data" \
-      --eth2stats.addr="grpc.sapphire.eth2stats.net:443" --eth2stats.tls=true \
+      --eth2stats.addr="grpc.sapphire.eth2stats.io:443" --eth2stats.tls=true \
       --beacon.type="prysm" --beacon.addr="localhost:4000"
 ```
 
@@ -65,7 +65,7 @@ make build
 ```shell script
 ./eth2stats-client run \
                    --eth2stats.node-name="YourNode" \
-                   --eth2stats.addr="grpc.sapphire.eth2stats.net:443" --eth2stats.tls=true \
+                   --eth2stats.addr="grpc.sapphire.eth2stats.io:443" --eth2stats.tls=true \
                    --beacon.type="prysm" --beacon.addr="localhost:4000"
 ```
 
