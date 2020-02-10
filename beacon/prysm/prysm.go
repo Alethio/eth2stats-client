@@ -14,6 +14,7 @@ import (
 )
 
 var log = logrus.WithField("module", "prysm")
+var ClientMaxReceiveMessageSize = 67108864
 
 type Config struct {
 	GRPCAddr string
@@ -29,7 +30,7 @@ type PrysmGRPCClient struct {
 func New(config Config) *PrysmGRPCClient {
 	log.Info("setting up beacon client connection")
 
-	conn, err := grpc.Dial(config.GRPCAddr, grpc.WithInsecure())
+	conn, err := grpc.Dial(config.GRPCAddr, grpc.WithInsecure(), grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(ClientMaxReceiveMessageSize)))
 	if err != nil {
 		log.Fatalf("fail to dial: %v", err)
 	}
