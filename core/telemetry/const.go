@@ -5,6 +5,6 @@ import (
 )
 
 const (
-	PollingInterval      = 12 * time.Second * 4 // TODO increase poll interval until we get actual counters
+	PollingInterval      = 12 * time.Second
 	MemoryUsageThreshold = 10 * 1024 * 1024
 )

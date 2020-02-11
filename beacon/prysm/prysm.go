@@ -76,13 +76,22 @@ func (c *PrysmGRPCClient) GetPeerCount() (int64, error) {
 }
 
 func (c *PrysmGRPCClient) GetAttestationsInPoolCount() (int64, error) {
-	attestations, err := c.beacon.AttestationPool(context.Background(), &empty.Empty{})
+	req := &prysmAPI.AttestationPoolRequest{
+		PageSize: 1,
+	}
+	resp, err := c.beacon.AttestationPool(context.Background(), req)
 	if err != nil {
 		log.Error(err)
 		return 0, err
 	}
-
-	return int64(len(attestations.Attestations)), nil
+	if resp == nil {
+		return 0, beacon.NotImplemented
+	}
+	// fallback for not updated nodes
+	if resp.TotalSize == 0 && len(resp.Attestations) > 0 {
+		return int64(len(resp.Attestations)), nil
+	}
+	return int64(resp.TotalSize), nil
 }
 
 func (c *PrysmGRPCClient) GetSyncStatus() (bool, error) {
