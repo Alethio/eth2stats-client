@@ -3,6 +3,7 @@ package prysm
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	prysmAPI "github.com/prysmaticlabs/ethereumapis/eth/v1alpha1"
@@ -30,9 +31,13 @@ type PrysmGRPCClient struct {
 func New(config Config) *PrysmGRPCClient {
 	log.Info("setting up beacon client connection")
 
-	conn, err := grpc.Dial(config.GRPCAddr, grpc.WithInsecure(), grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(ClientMaxReceiveMessageSize)))
+	conn, err := grpc.Dial(
+		config.GRPCAddr,
+		grpc.WithInsecure(),
+		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(ClientMaxReceiveMessageSize)),
+	)
 	if err != nil {
-		log.Fatalf("fail to dial: %v", err)
+		log.Fatalf("failed to connect to prysm: %v", err)
 	}
 
 	beaconAPI := prysmAPI.NewBeaconChainClient(conn)
@@ -48,8 +53,7 @@ func New(config Config) *PrysmGRPCClient {
 func (c *PrysmGRPCClient) GetVersion() (string, error) {
 	version, err := c.node.GetVersion(context.Background(), &empty.Empty{})
 	if err != nil {
-		log.Error(err)
-		return "", err
+		return "", fmt.Errorf("prysm: getting version: %s", err)
 	}
 
 	return version.GetVersion(), nil
@@ -58,8 +62,7 @@ func (c *PrysmGRPCClient) GetVersion() (string, error) {
 func (c *PrysmGRPCClient) GetGenesisTime() (int64, error) {
 	genesis, err := c.node.GetGenesis(context.Background(), &empty.Empty{})
 	if err != nil {
-		log.Error(err)
-		return 0, err
+		return 0, fmt.Errorf("prysm: getting genesis time: %s", err)
 	}
 
 	return genesis.GetGenesisTime().GetSeconds(), nil
@@ -107,8 +110,7 @@ func (c *PrysmGRPCClient) GetSyncStatus() (bool, error) {
 func (c *PrysmGRPCClient) GetChainHead() (*types.ChainHead, error) {
 	head, err := c.beacon.GetChainHead(context.Background(), &empty.Empty{})
 	if err != nil {
-		log.Error(err)
-		return nil, err
+		return nil, fmt.Errorf("prysm: getting chain head: %s", err)
 	}
 
 	return &types.ChainHead{

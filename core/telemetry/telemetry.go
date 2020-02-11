@@ -56,7 +56,8 @@ func (t *Telemetry) Run() {
 func (t *Telemetry) pollPeers() {
 	peers, err := t.beaconClient.GetPeerCount()
 	if err != nil {
-		log.Fatal(err)
+		log.Errorf("getting peer count: %s", err)
+		return
 	}
 	log.Tracef("peers: %d", peers)
 
@@ -65,7 +66,7 @@ func (t *Telemetry) pollPeers() {
 
 		_, err := t.service.Peers(t.contextWithToken(), &proto.PeersRequest{Peers: peers})
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("sending peers count: %s", err)
 		}
 	}
 }
@@ -77,7 +78,8 @@ func (t *Telemetry) pollAttestations() {
 			// feature not available, skip
 			return
 		}
-		log.Fatal(err)
+		log.Errorf("getting attestations in pool: %s", err)
+		return
 	}
 	log.Tracef("attestations: %d", attestations)
 
@@ -86,7 +88,7 @@ func (t *Telemetry) pollAttestations() {
 
 		_, err := t.service.Attestations(t.contextWithToken(), &proto.AttestationsRequest{AttestationsInPool: attestations})
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("sending attestations count: %s", err)
 		}
 	}
 }
@@ -98,7 +100,8 @@ func (t *Telemetry) pollSyncing() {
 			// feature not available, skip
 			return
 		}
-		log.Fatal(err)
+		log.Errorf("getting sync status: %s", err)
+		return
 	}
 	log.Tracef("node syncing: %t", syncing)
 
@@ -107,7 +110,7 @@ func (t *Telemetry) pollSyncing() {
 
 		_, err := t.service.Syncing(t.contextWithToken(), &proto.SyncingRequest{Syncing: syncing})
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("sending syncing status: %s", err)
 		}
 	}
 }
@@ -120,7 +123,7 @@ func (t *Telemetry) pollMemUsage() {
 
 			_, err := t.service.MemoryUsage(t.contextWithToken(), &proto.MemoryUsageRequest{MemoryUsage: *memUsagePointer})
 			if err != nil {
-				log.Fatal(err)
+				log.Fatalf("sending mem usage: %s", err)
 			}
 		}
 	}

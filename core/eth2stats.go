@@ -16,12 +16,17 @@ func (c *Core) initEth2statsClient() {
 
 	if c.config.Eth2stats.TLS {
 		tlsConfig := &tls.Config{}
-		conn, err = grpc.Dial(c.config.Eth2stats.ServerAddr, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+		conn, err = grpc.Dial(
+			c.config.Eth2stats.ServerAddr,
+			grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)),
+		)
 	} else {
-		conn, err = grpc.Dial(c.config.Eth2stats.ServerAddr, grpc.WithInsecure())
+		conn, err = grpc.Dial(c.config.Eth2stats.ServerAddr,
+			grpc.WithInsecure(),
+		)
 	}
 	if err != nil {
-		log.Fatalf("fail to dial: %v", err)
+		log.Fatalf("failed to connect to eth2stats: %v", err)
 	}
 
 	c.statsService = proto.NewEth2StatsClient(conn)

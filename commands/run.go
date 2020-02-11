@@ -5,12 +5,15 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/alethio/eth2stats-client/core"
 )
+
+const RetryInterval = time.Second * 12
 
 var runCmd = &cobra.Command{
 	Use:   "run",
@@ -20,29 +23,38 @@ var runCmd = &cobra.Command{
 		signal.Notify(stopChan, syscall.SIGINT)
 		signal.Notify(stopChan, syscall.SIGTERM)
 
-		c := core.New(core.Config{
-			Eth2stats: core.Eth2statsConfig{
-				Version:    fmt.Sprintf("eth2stats-client/%s", RootCmd.Version),
-				ServerAddr: viper.GetString("eth2stats.addr"),
-				TLS:        viper.GetBool("eth2stats.tls"),
-				NodeName:   viper.GetString("eth2stats.node-name"),
-			},
-			BeaconNode: core.BeaconNodeConfig{
-				Type:        viper.GetString("beacon.type"),
-				Addr:        viper.GetString("beacon.addr"),
-				MetricsAddr: viper.GetString("beacon.metrics-addr"),
-			},
-			DataFolder: viper.GetString("data.folder"),
-		})
-		go c.Run()
+		go func() {
+			for {
+				c := core.New(core.Config{
+					Eth2stats: core.Eth2statsConfig{
+						Version:    fmt.Sprintf("eth2stats-client/%s", RootCmd.Version),
+						ServerAddr: viper.GetString("eth2stats.addr"),
+						TLS:        viper.GetBool("eth2stats.tls"),
+						NodeName:   viper.GetString("eth2stats.node-name"),
+					},
+					BeaconNode: core.BeaconNodeConfig{
+						Type:        viper.GetString("beacon.type"),
+						Addr:        viper.GetString("beacon.addr"),
+						MetricsAddr: viper.GetString("beacon.metrics-addr"),
+					},
+					DataFolder: viper.GetString("data.folder"),
+				})
+
+				err := c.Run()
+				if err != nil {
+					log.Error(err)
+				}
+
+				// we're only getting here if there's been no error during set up
+				time.Sleep(time.Second * 12)
+				log.Info("retrying...")
+			}
+		}()
 
 		select {
 		case <-stopChan:
-			log.Info("Got stop signal. Finishing work.")
-
-			c.Close()
-
-			log.Info("Work done. Goodbye!")
+			log.Info("got stop signal. finishing work.")
+			log.Info("work done. goodbye!")
 		}
 	},
 }

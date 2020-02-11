@@ -64,6 +64,6 @@ func (c *Core) updateToken(token string) {
 	c.token = token
 	err := c.writeToken(token)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("writing connection token: %s", err)
 	}
 }
