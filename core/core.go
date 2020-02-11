@@ -144,7 +144,7 @@ func (c *Core) watchNewHeads() {
 					log.Fatal(err)
 				}
 			} else {
-				log.Warn("ChainHead request was skipped due to rate limiting")
+				log.Debug("ChainHead request was skipped due to rate limiting")
 			}
 		}
 
