@@ -47,7 +47,8 @@ func (w *Watcher) Run() {
 func (w *Watcher) poll() {
 	metrics, err := w.query()
 	if err != nil {
-		log.Fatal(err)
+		log.Errorf("failed to poll metrics: %s", err)
+		return
 	}
 
 	w.monitorMetrics(metrics)

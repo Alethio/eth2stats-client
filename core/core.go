@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"time"
 
 	proto "github.com/alethio/eth2stats-proto"
@@ -62,17 +63,17 @@ func New(config Config) *Core {
 
 	err := c.searchToken()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("loading auth token", err)
 	}
 
 	return &c
 }
 
-func (c *Core) connectToServer() {
+func (c *Core) connectToServer() error {
 	log.Info("getting beacon client version")
 	version, err := c.beaconClient.GetVersion()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	log.WithField("version", version).Info("got beacon client version")
@@ -80,7 +81,7 @@ func (c *Core) connectToServer() {
 	log.Info("getting beacon client genesis time")
 	genesisTime, err := c.beaconClient.GetGenesisTime()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	log.WithField("genesisTime", genesisTime).Info("got beacon client genesis time")
@@ -93,7 +94,7 @@ func (c *Core) connectToServer() {
 		Eth2StatsVersion: c.config.Eth2stats.Version,
 	}, grpc.WaitForReady(true))
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("eth2stats: failed to connect: %s", err)
 	}
 
 	c.updateToken(resp.Token)
@@ -101,7 +102,7 @@ func (c *Core) connectToServer() {
 	log.Info("getting chain head for initial feed")
 	head, err := c.beaconClient.GetChainHead()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	log.WithField("headSlot", head.HeadSlot).Info("got chain head")
 
@@ -114,10 +115,11 @@ func (c *Core) connectToServer() {
 		JustifiedBlockRoot: head.JustifiedBlockRoot,
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("sending chain head: %s", err)
 	}
 
 	log.Info("successfully connected to eth2stats server")
+	return nil
 }
 
 func (c *Core) watchNewHeads() {
@@ -125,6 +127,7 @@ func (c *Core) watchNewHeads() {
 		log.Info("setting up chain heads subscription")
 		sub, err := c.beaconClient.SubscribeChainHeads()
 		if err != nil {
+			// TODO handle gracefully
 			log.Fatal(err)
 		}
 
@@ -141,7 +144,7 @@ func (c *Core) watchNewHeads() {
 					JustifiedBlockRoot: msg.JustifiedBlockRoot,
 				})
 				if err != nil {
-					log.Fatal(err)
+					log.Fatalf("sending chain head: %s", err)
 				}
 			} else {
 				log.Debug("ChainHead request was skipped due to rate limiting")
@@ -158,7 +161,7 @@ func (c *Core) sendHeartbeat() {
 
 		_, err := c.statsService.Heartbeat(c.contextWithToken(), &proto.HeartbeatRequest{})
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("sending heartbeat: %s", err)
 
 			continue
 		}
@@ -166,13 +169,21 @@ func (c *Core) sendHeartbeat() {
 	}
 }
 
-func (c *Core) Run() {
-	c.connectToServer()
-	go c.sendHeartbeat()
+func (c *Core) Run() error {
+	err := c.connectToServer()
+	if err != nil {
+		return fmt.Errorf("setting up: %s", err)
+	}
+
+	// TODO handle gracefully
 	go c.watchNewHeads()
 
 	t := telemetry.New(c.telemetryService, c.beaconClient, c.metricsWatcher, c.contextWithToken)
 	go t.Run()
+
+	// block while sending heartbeat
+	c.sendHeartbeat()
+	return nil
 }
 
 func (c *Core) Close() {

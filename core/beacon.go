@@ -17,7 +17,7 @@ func initBeaconClient(nodeType, nodeAddr string) beacon.Client {
 		return prysm.New(prysm.Config{GRPCAddr: nodeAddr})
 	case "lighthouse":
 		if !IsURL(nodeAddr) {
-			log.Fatal("Invalid node URL.")
+			log.Fatalf("invalid node URL: %s", nodeAddr)
 		}
 		var netTransport = &http.Transport{
 			Dial: (&net.Dialer{
@@ -31,7 +31,7 @@ func initBeaconClient(nodeType, nodeAddr string) beacon.Client {
 		}
 		return lighthouse.New(httpClient, nodeAddr)
 	default:
-		log.Fatal("Node type not recognized.")
+		log.Fatalf("node type not recognized: %s", nodeType)
 		return nil
 	}
 }
