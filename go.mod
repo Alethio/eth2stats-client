@@ -27,3 +27,5 @@ require (
 )
 
 go 1.13
+
+replace github.com/ugorji/go/codec => github.com/ugorji/go/codec v1.1.7
