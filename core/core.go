@@ -11,6 +11,7 @@ import (
 
 	"github.com/alethio/eth2stats-client/beacon"
 	"github.com/alethio/eth2stats-client/core/telemetry"
+	"github.com/alethio/eth2stats-client/validator/prysm"
 	metricsWatcher "github.com/alethio/eth2stats-client/watcher/metrics"
 )
 
@@ -29,10 +30,16 @@ type BeaconNodeConfig struct {
 	MetricsAddr string
 }
 
+type ValidatorNodeConfig struct {
+	Type        string
+	MetricsAddr string
+}
+
 type Config struct {
-	Eth2stats  Eth2statsConfig
-	BeaconNode BeaconNodeConfig
-	DataFolder string
+	Eth2stats     Eth2statsConfig
+	BeaconNode    BeaconNodeConfig
+	ValidatorNode ValidatorNodeConfig
+	DataFolder    string
 }
 
 type Core struct {
@@ -41,9 +48,37 @@ type Core struct {
 
 	statsService     proto.Eth2StatsClient
 	telemetryService proto.TelemetryClient
+	validatorService proto.ValidatorClient
 
 	beaconClient   beacon.Client
 	metricsWatcher *metricsWatcher.Watcher
+}
+
+func (c *Core) Run() error {
+	err := c.connectToBeaconClient()
+	if err != nil {
+		return fmt.Errorf("setting up: %s", err)
+	}
+
+	// TODO handle gracefully
+	go c.watchNewHeads()
+
+	t := telemetry.New(c.telemetryService, c.beaconClient, c.metricsWatcher, c.contextWithToken)
+	go t.Run()
+
+	if c.config.ValidatorNode.MetricsAddr != "" {
+		log.Info("starting validator monitoring on %s", c.config.ValidatorNode.MetricsAddr)
+		v := prysm.NewValidator(c.config.ValidatorNode.MetricsAddr, c.validatorService)
+		go v.Run()
+	}
+
+	// block while sending heartbeat
+	c.sendHeartbeat()
+	return nil
+}
+
+func (c *Core) Close() {
+	log.Info("Got stop signal")
 }
 
 func New(config Config) *Core {
@@ -69,7 +104,7 @@ func New(config Config) *Core {
 	return &c
 }
 
-func (c *Core) connectToServer() error {
+func (c *Core) connectToBeaconClient() error {
 	log.Info("getting beacon client version")
 	version, err := c.beaconClient.GetVersion()
 	if err != nil {
@@ -167,25 +202,4 @@ func (c *Core) sendHeartbeat() {
 		}
 		log.Trace("done sending heartbeat")
 	}
-}
-
-func (c *Core) Run() error {
-	err := c.connectToServer()
-	if err != nil {
-		return fmt.Errorf("setting up: %s", err)
-	}
-
-	// TODO handle gracefully
-	go c.watchNewHeads()
-
-	t := telemetry.New(c.telemetryService, c.beaconClient, c.metricsWatcher, c.contextWithToken)
-	go t.Run()
-
-	// block while sending heartbeat
-	c.sendHeartbeat()
-	return nil
-}
-
-func (c *Core) Close() {
-	log.Info("Got stop signal")
 }

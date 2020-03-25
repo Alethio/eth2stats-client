@@ -31,4 +31,5 @@ func (c *Core) initEth2statsClient() {
 
 	c.statsService = proto.NewEth2StatsClient(conn)
 	c.telemetryService = proto.NewTelemetryClient(conn)
+	c.validatorService = proto.NewValidatorClient(conn)
 }

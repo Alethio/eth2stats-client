@@ -16,6 +16,7 @@ import (
 const RetryInterval = time.Second * 12
 
 var runCmd = &cobra.Command{
+	// TODO needs to be migrated to "beacon"
 	Use:   "run",
 	Short: "Connect to the eth2stats server and start sending data",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -23,6 +24,8 @@ var runCmd = &cobra.Command{
 		signal.Notify(stopChan, syscall.SIGINT)
 		signal.Notify(stopChan, syscall.SIGTERM)
 
+		// TODO all the services need to run from a single cancellable context
+		// TODO dependent services should maybe have a sub context to teardown and recreate that part
 		go func() {
 			for {
 				c := core.New(core.Config{
@@ -36,6 +39,10 @@ var runCmd = &cobra.Command{
 						Type:        viper.GetString("beacon.type"),
 						Addr:        viper.GetString("beacon.addr"),
 						MetricsAddr: viper.GetString("beacon.metrics-addr"),
+					},
+					ValidatorNode: core.ValidatorNodeConfig{
+						Type:        viper.GetString("beacon.type"),
+						MetricsAddr: viper.GetString("validator.metrics-addr"),
 					},
 					DataFolder: viper.GetString("data.folder"),
 				})
@@ -80,4 +87,8 @@ func init() {
 
 	runCmd.Flags().String("data.folder", "./data", "Folder in which to persist data")
 	viper.BindPFlag("data.folder", runCmd.Flag("data.folder"))
+
+	// TODO this needs moving in it's own command when we have a way of linking validator nodes
+	runCmd.Flags().String("validator.metrics-addr", "", "The url where the validator client exposes metrics")
+	viper.BindPFlag("validator.metrics-addr", runCmd.Flag("validator.metrics-addr"))
 }
