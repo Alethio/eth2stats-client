@@ -74,7 +74,7 @@ func (me Extractor) First(family string, labels []LabelPair) *float64 {
 
 		// not all labels found
 		if !foundAll {
-			return nil
+			continue
 		}
 
 		value = v

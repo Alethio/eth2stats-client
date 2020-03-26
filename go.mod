@@ -11,6 +11,7 @@ require (
 	github.com/kwix/logrus-module-formatter v0.0.0-20190702125859-070a70371a97
 	github.com/magiconair/properties v1.8.1
 	github.com/parnurzeal/gorequest v0.2.16
+	github.com/pkg/errors v0.8.0
 	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4
 	github.com/prometheus/common v0.4.0
 	github.com/prysmaticlabs/ethereumapis v0.0.0-20200211032731-6720aaf75915

@@ -21,6 +21,7 @@ func TestExtractor_First(t *testing.T) {
 		{"process_start_time_seconds", nil, fp(1.58454130883e+09)},
 		{"log_entries_total", []LabelPair{{"prefix", ""}}, nil},
 		{"log_entries_total", []LabelPair{{"prefix", "validator"}, {"level", "error"}}, fp(84233)},
+		{"log_entries_total", []LabelPair{{"prefix", "validator"}, {"level", "warning"}}, fp(1)},
 	}
 	me, err := NewFromFile("../testdata/validator/metrics.txt")
 	require.NoError(t, err)

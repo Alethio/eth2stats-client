@@ -2,16 +2,14 @@ package prysm
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 	"time"
 
 	proto "github.com/alethio/eth2stats-proto"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/parnurzeal/gorequest"
-	io_prometheus_client "github.com/prometheus/client_model/go"
-	"github.com/prometheus/common/expfmt"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
+	"github.com/alethio/eth2stats-client/metrics"
 )
 
 var log = logrus.WithField("module", "validator")
@@ -26,26 +24,20 @@ func (v *Validator) Run() {
 	ctx := context.Background()
 	for {
 		log.Trace("collecting validator data")
-		metrics, err := v.queryMetrics()
-		if err != nil {
-			// TODO report to validator service as unconnectable
-			log.Errorf("could not query validator node: %s", err)
-			req := &proto.ValidatorClientRequest{
-				Status: proto.ValidatorClientRequest_UNREACHABLE,
-			}
-			_, err := v.service.ValidatorClient(ctx, req)
-			if err != nil {
-				log.Errorf("setting unreachable validator status: %s", err)
-			}
-			time.Sleep(PollingInterval)
-			continue
-		}
 
 		req := &proto.ValidatorClientRequest{
-			Data: make(map[string]float64),
+			Status: proto.ValidatorClientRequest_ONLINE,
+			Data:   make(map[string]float64),
 		}
 
-		v.extractMetrics(metrics, req)
+		err := v.extractMetrics(req)
+		if err != nil {
+			log.Errorf("could not query validator node: %s", err)
+			req = &proto.ValidatorClientRequest{
+				Status: proto.ValidatorClientRequest_UNREACHABLE,
+			}
+		}
+
 		_, err = v.service.ValidatorClient(ctx, req)
 		if err != nil {
 			log.Errorf("setting validator client: %s", err)
@@ -58,56 +50,40 @@ func (v *Validator) Run() {
 	}
 }
 
-func (v *Validator) queryMetrics() (map[string]*io_prometheus_client.MetricFamily, error) {
-	request := gorequest.New()
-	resp, _, errs := request.Get(v.metricsURL).End()
-	if len(errs) > 0 {
-		log.Error(errs)
-		return nil, fmt.Errorf("%+q", errs)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		err := fmt.Errorf("validator metrics query responded with status code != 200: %d", resp.StatusCode)
-		log.Error(err)
-		return nil, err
-	}
-
-	var parser expfmt.TextParser
-	metricFamilies, err := parser.TextToMetricFamilies(resp.Body)
+func (v *Validator) extractMetrics(req *proto.ValidatorClientRequest) error {
+	me, err := metrics.NewFromURL(v.metricsURL)
 	if err != nil {
-		log.Error("reading text format failed:", err)
-		return nil, err
+		return errors.Wrap(err, "failed to get metrics")
 	}
 
-	return metricFamilies, nil
-}
-
-func (v *Validator) extractMetrics(metrics map[string]*io_prometheus_client.MetricFamily, req *proto.ValidatorClientRequest) {
-	me := MetricsExtractor(metrics)
-	families := []FamilyToKey{
-		{"process_start_time_seconds", nil, "start_time"},
-		{"process_resident_memory_bytes", nil, "mem_usage"},
-		{"process_cpu_seconds_total", nil, "cpu_secs"},
+	stats := []stat{
+		{"start_time", "process_start_time_seconds", nil},
+		{"mem_usage", "process_resident_memory_bytes", nil},
+		{"cpu_secs", "process_cpu_seconds_total", nil},
 		{
+			"validator-errors",
 			"log_entries_total",
-			[]LabelPair{
+			[]metrics.LabelPair{
 				{"prefix", "validator"},
 				{"level", "error"},
 			},
-			"validator-errors",
 		},
-		{
+		{"validator-warnings",
 			"log_entries_total",
-			[]LabelPair{
+			[]metrics.LabelPair{
 				{"prefix", "validator"},
 				{"level", "warning"},
 			},
-			"validator-warnings",
 		},
 	}
-	for _, f := range families {
-		me.SetNotNil(f, &req.Data)
+	for _, s := range stats {
+		v := me.First(s.family, s.labels)
+		if v != nil {
+			req.Data[s.key] = *v
+		}
+
 	}
+	return nil
 }
 
 func NewValidator(url string, service proto.ValidatorClient) *Validator {
