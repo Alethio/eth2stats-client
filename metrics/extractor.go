@@ -1,4 +1,4 @@
-package prysm
+package metrics
 
 import (
 	"fmt"
@@ -9,31 +9,20 @@ import (
 	"github.com/parnurzeal/gorequest"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+	"github.com/sirupsen/logrus"
 )
 
-type MetricsExtractor map[string]*io_prometheus_client.MetricFamily
+var log = logrus.WithField("module", "metrics")
 
-type FamilyToKey struct {
-	Family string
-	Labels []LabelPair
-	Key    string
-}
+type Extractor map[string]*io_prometheus_client.MetricFamily
 
 type LabelPair struct {
 	Name  string
 	Value string
 }
 
-func (me MetricsExtractor) SetNotNil(f2k FamilyToKey, gauges *map[string]float64) {
-	v := me.extractFloat(f2k.Family, f2k.Labels)
-
-	if v != nil {
-		(*gauges)[f2k.Key] = *v
-	}
-}
-
-func (me MetricsExtractor) GetGaugeInt64(family string) *int64 {
-	v := me.extractFloat(family, nil)
+func (me Extractor) GetInt64(family string) *int64 {
+	v := me.First(family, nil)
 	if v != nil {
 		i := int64(*v)
 		return &i
@@ -41,11 +30,7 @@ func (me MetricsExtractor) GetGaugeInt64(family string) *int64 {
 	return nil
 }
 
-func (me MetricsExtractor) GetFloat(family string) *float64 {
-	return me.extractFloat(family, nil)
-}
-
-func (me MetricsExtractor) extractFloat(family string, labels []LabelPair) *float64 {
+func (me Extractor) First(family string, labels []LabelPair) *float64 {
 	metricFamily, ok := me[family]
 	if !ok {
 		log.Tracef("could not find metric family %s", family)
@@ -93,12 +78,13 @@ func (me MetricsExtractor) extractFloat(family string, labels []LabelPair) *floa
 		}
 
 		value = v
+		break
 	}
 
 	return value
 }
 
-func NewFromURL(url string) (*MetricsExtractor, error) {
+func NewFromURL(url string) (*Extractor, error) {
 	request := gorequest.New()
 	resp, _, errs := request.Get(url).End()
 	if len(errs) > 0 {
@@ -120,7 +106,7 @@ func NewFromURL(url string) (*MetricsExtractor, error) {
 	return metrics, resp.Body.Close()
 }
 
-func NewFromFile(path string) (*MetricsExtractor, error) {
+func NewFromFile(path string) (*Extractor, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -134,7 +120,7 @@ func NewFromFile(path string) (*MetricsExtractor, error) {
 	return metrics, file.Close()
 }
 
-func loadMetrics(reader io.Reader) (*MetricsExtractor, error) {
+func loadMetrics(reader io.Reader) (*Extractor, error) {
 	var parser expfmt.TextParser
 	metricFamilies, err := parser.TextToMetricFamilies(reader)
 	if err != nil {
@@ -142,6 +128,6 @@ func loadMetrics(reader io.Reader) (*MetricsExtractor, error) {
 		return nil, err
 	}
 
-	me := MetricsExtractor(metricFamilies)
+	me := Extractor(metricFamilies)
 	return &me, nil
 }

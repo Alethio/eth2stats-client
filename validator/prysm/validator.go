@@ -42,7 +42,7 @@ func (v *Validator) Run() {
 		}
 
 		req := &proto.ValidatorClientRequest{
-			Gauges: make(map[string]float64),
+			Data: make(map[string]float64),
 		}
 
 		v.extractMetrics(metrics, req)
@@ -83,23 +83,30 @@ func (v *Validator) queryMetrics() (map[string]*io_prometheus_client.MetricFamil
 }
 
 func (v *Validator) extractMetrics(metrics map[string]*io_prometheus_client.MetricFamily, req *proto.ValidatorClientRequest) {
-	spew.Dump(metrics["log_entries_total"].Metric[0].Counter)
 	me := MetricsExtractor(metrics)
 	families := []FamilyToKey{
-		{"process_start_time_seconds", "start_time", nil},
-		{"process_resident_memory_bytes", "mem_usage", nil},
-		{"process_cpu_seconds_total", "cpu_secs", nil},
-		{"log_entries_total", "validator-errors", []LabelPair{
-			{"prefix", "validator"},
-			{"level", "error"},
-		}},
-		{"log_entries_total", "validator-warnings", []LabelPair{
-			{"prefix", "validator"},
-			{"level", "warning"},
-		}},
+		{"process_start_time_seconds", nil, "start_time"},
+		{"process_resident_memory_bytes", nil, "mem_usage"},
+		{"process_cpu_seconds_total", nil, "cpu_secs"},
+		{
+			"log_entries_total",
+			[]LabelPair{
+				{"prefix", "validator"},
+				{"level", "error"},
+			},
+			"validator-errors",
+		},
+		{
+			"log_entries_total",
+			[]LabelPair{
+				{"prefix", "validator"},
+				{"level", "warning"},
+			},
+			"validator-warnings",
+		},
 	}
-	for _, g := range families {
-		me.SetNotNil(g, &req.Gauges)
+	for _, f := range families {
+		me.SetNotNil(f, &req.Data)
 	}
 }
 
