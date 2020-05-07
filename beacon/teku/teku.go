@@ -78,11 +78,11 @@ func (s *TekuHTTPClient) GetChainHead() (*types.ChainHead, error) {
 	path := fmt.Sprintf("beacon/chainhead")
 	type chainHead struct {
 		// Slight difference from lighthouse, to be standardized in new API proposal.
-		HeadSlot           uint64 `json:"head_slot"`
+		HeadSlot           string `json:"head_slot"`
 		HeadBlockRoot      string `json:"head_block_root"`
-		FinalizedSlot      uint64 `json:"finalized_slot"`
+		FinalizedSlot      string `json:"finalized_slot"`
 		FinalizedBlockRoot string `json:"finalized_block_root"`
-		JustifiedSlot      uint64 `json:"justified_slot"`
+		JustifiedSlot      string `json:"justified_slot"`
 		JustifiedBlockRoot string `json:"justified_block_root"`
 		// Note: some fields, like epochs and previous justified epoch, are ignored.
 	}
@@ -91,7 +91,26 @@ func (s *TekuHTTPClient) GetChainHead() (*types.ChainHead, error) {
 	if err != nil {
 		return nil, err
 	}
-	typesChainHead := types.ChainHead(*head)
+	headSlot, err := strconv.ParseUint(head.HeadSlot, 0, 64)
+	if err != nil {
+		return nil, err
+	}
+	finalizedSlot, err := strconv.ParseUint(head.FinalizedSlot, 0, 64)
+	if err != nil {
+		return nil, err
+	}
+	justifiedSlot, err := strconv.ParseUint(head.JustifiedSlot, 0, 64)
+	if err != nil {
+		return nil, err
+	}
+	typesChainHead := types.ChainHead{
+		HeadSlot:           headSlot,
+		HeadBlockRoot:      head.HeadBlockRoot,
+		FinalizedSlot:      finalizedSlot,
+		FinalizedBlockRoot: head.FinalizedBlockRoot,
+		JustifiedSlot:      justifiedSlot,
+		JustifiedBlockRoot: head.JustifiedBlockRoot,
+	}
 	return &typesChainHead, nil
 }
 
