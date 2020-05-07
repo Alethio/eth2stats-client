@@ -107,7 +107,7 @@ Example for Teku:
 ```shell script
 ./eth2stats-client run \
                    --eth2stats.node-name="YourNode" \
-                   --eth2stats.addr="grpc.summer.eth2stats.io:443" --eth2stats.tls=true \
+                   --eth2stats.addr="grpc.schlesi.eth2stats.io:443" --eth2stats.tls=true \
                    --beacon.type="teku" --beacon.addr="localhost:5051"
 ```
 
