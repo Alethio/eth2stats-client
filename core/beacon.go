@@ -1,13 +1,14 @@
 package core
 
 import (
+	"github.com/alethio/eth2stats-client/beacon/lighthouse"
+	"github.com/alethio/eth2stats-client/beacon/teku"
 	"net"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/alethio/eth2stats-client/beacon"
-	"github.com/alethio/eth2stats-client/beacon/lighthouse"
 	"github.com/alethio/eth2stats-client/beacon/prysm"
 )
 
@@ -15,7 +16,7 @@ func initBeaconClient(nodeType, nodeAddr string) beacon.Client {
 	switch nodeType {
 	case "prysm":
 		return prysm.New(prysm.Config{GRPCAddr: nodeAddr})
-	case "lighthouse":
+	case "lighthouse", "teku":
 		if !IsURL(nodeAddr) {
 			log.Fatalf("invalid node URL: %s", nodeAddr)
 		}
@@ -29,7 +30,12 @@ func initBeaconClient(nodeType, nodeAddr string) beacon.Client {
 			Timeout:   time.Second * 10,
 			Transport: netTransport,
 		}
-		return lighthouse.New(httpClient, nodeAddr)
+		switch nodeType {
+		case "lighthouse":
+			return lighthouse.New(httpClient, nodeAddr)
+		case "teku":
+			return teku.New(httpClient, nodeAddr)
+		}
 	default:
 		log.Fatalf("node type not recognized: %s", nodeType)
 		return nil
