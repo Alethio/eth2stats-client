@@ -16,12 +16,13 @@ var log = logrus.WithField("module", "validator")
 
 // TODO reorg in a single package maybe
 type Validator struct {
-	metricsURL string
-	service    proto.ValidatorClient
+	contextWithToken func() context.Context
+	metricsURL       string
+	service          proto.ValidatorClient
 }
 
 func (v *Validator) Run() {
-	ctx := context.Background()
+	ctx := v.contextWithToken()
 	for {
 		log.Trace("collecting validator data")
 
@@ -57,18 +58,18 @@ func (v *Validator) extractMetrics(req *proto.ValidatorClientRequest) error {
 	}
 
 	stats := []stat{
-		{"start_time", "process_start_time_seconds", nil},
-		{"mem_usage", "process_resident_memory_bytes", nil},
-		{"cpu_secs", "process_cpu_seconds_total", nil},
+		{"startTime", "process_start_time_seconds", nil},
+		{"memUsage", "process_resident_memory_bytes", nil},
+		{"cpuSecs", "process_cpu_seconds_total", nil},
 		{
-			"validator-errors",
+			"validatorErrors",
 			"log_entries_total",
 			[]metrics.LabelPair{
 				{"prefix", "validator"},
 				{"level", "error"},
 			},
 		},
-		{"validator-warnings",
+		{"validatorWarnings",
 			"log_entries_total",
 			[]metrics.LabelPair{
 				{"prefix", "validator"},
@@ -86,9 +87,10 @@ func (v *Validator) extractMetrics(req *proto.ValidatorClientRequest) error {
 	return nil
 }
 
-func NewValidator(url string, service proto.ValidatorClient) *Validator {
+func NewValidator(url string, service proto.ValidatorClient, contextWithToken func() context.Context) *Validator {
 	return &Validator{
-		metricsURL: url,
-		service:    service,
+		contextWithToken: contextWithToken,
+		metricsURL:       url,
+		service:          service,
 	}
 }

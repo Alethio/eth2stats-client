@@ -14,7 +14,7 @@ require (
 	github.com/pkg/errors v0.8.0
 	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4
 	github.com/prometheus/common v0.4.0
-	github.com/prysmaticlabs/ethereumapis v0.0.0-20200211032731-6720aaf75915
+	github.com/prysmaticlabs/ethereumapis v0.0.0-20200414190010-6607cc86ddb7
 	github.com/sirupsen/logrus v1.4.2
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/cobra v0.0.5

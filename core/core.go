@@ -68,7 +68,7 @@ func (c *Core) Run() error {
 
 	if c.config.ValidatorNode.MetricsAddr != "" {
 		log.Info("starting validator monitoring on %s", c.config.ValidatorNode.MetricsAddr)
-		v := prysm.NewValidator(c.config.ValidatorNode.MetricsAddr, c.validatorService)
+		v := prysm.NewValidator(c.config.ValidatorNode.MetricsAddr, c.validatorService, c.contextWithToken)
 		go v.Run()
 	}
 
