@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/alethio/eth2stats-client/beacon/polling"
 	"net/http"
+	"strconv"
 
 	"github.com/dghubble/sling"
 	"github.com/sirupsen/logrus"
@@ -32,12 +33,16 @@ func (s *TekuHTTPClient) GetVersion() (string, error) {
 func (s *TekuHTTPClient) GetGenesisTime() (int64, error) {
 	// node/genesis_time instead of beacon/genesis_time like lighthouse.
 	path := fmt.Sprintf("node/genesis_time")
-	genesis := new(int64)
+	genesis := new(string)
 	_, err := s.api.New().Get(path).ReceiveSuccess(genesis)
 	if err != nil {
 		return 0, err
 	}
-	return *genesis, nil
+	genesisTime, err := strconv.ParseInt(*genesis, 0, 64)
+	if err != nil {
+		return 0, err
+	}
+	return genesisTime, nil
 }
 
 func (s *TekuHTTPClient) GetPeerCount() (int64, error) {
