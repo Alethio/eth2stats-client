@@ -9,9 +9,9 @@
 
 | Client     | Supported | Protocols | Supported features                 |
 |------------|-----------|-----------|------------------------------------|
-| Prysm      | ✅         | GRPC      | Version, head, sync stats, metrics |
+| Prysm      | ✅         | GRPC      | Version, head, sync stats, memory |
 | Lighthouse | ✅         | HTTP      | Version, head                      |
-| Teku       | ✅         | HTTP      | Version, head                     |
+| Teku       | ✅         | HTTP      | Version, head, memory             |
 | Lodestar   |           |           |                                    |
 | Nimbus     |           |           |                                    |
 | Trinity    |           |           |                                    |
@@ -103,4 +103,13 @@ Example for Lighthouse:
                    --beacon.type="lighthouse" --beacon.addr="localhost:5052"
 ```
 
+#### Memory usage metrics
+
 If you want to see your beacon node client's memory usage as well, make sure you have metrics enabled in Prysm and add this cli argument, pointing at the right host `--beacon.metrics-addr="http://localhost:8080/metrics"`.
+
+Default metrics endpoints of supported clients:
+- Lighthouse: `127.0.0.1:5052/metrics` (under regular http API address and port), currently not supporting the memory metric.
+- Teku: `127.0.0.1:8008/metrics` (using `--metrics-enabled=true`)
+- Prysm: `127.0.0.1:8080/metrics`, monitoring enabled by default.
+
+The `process_resident_memory_bytes` gauge is extracted from the Prometheus metrics endpoint.
