@@ -1,6 +1,8 @@
-package lighthouse
+package polling
 
 import (
+	"github.com/alethio/eth2stats-client/beacon"
+	"github.com/prometheus/common/log"
 	"time"
 
 	"github.com/alethio/eth2stats-client/types"
@@ -10,21 +12,24 @@ const (
 	PollingInterval = time.Second
 )
 
-type ChainHeadSubscription struct {
+type ChainHeadClientPoller struct {
 	data   chan types.ChainHead
-	client *LighthouseHTTPClient
+	client beacon.Client
 
 	stopChan chan bool
 }
 
-func NewChainHeadSubscription(client *LighthouseHTTPClient) *ChainHeadSubscription {
-	return &ChainHeadSubscription{
+// Check interface
+var _ = beacon.ChainHeadSubscription((*ChainHeadClientPoller)(nil))
+
+func NewChainHeadClientPoller(client beacon.Client) *ChainHeadClientPoller {
+	return &ChainHeadClientPoller{
 		data:   make(chan types.ChainHead),
 		client: client,
 	}
 }
 
-func (s *ChainHeadSubscription) Start() {
+func (s *ChainHeadClientPoller) Start() {
 	log.Info("polling for new heads")
 	var lastHead *types.ChainHead
 
@@ -57,10 +62,10 @@ func (s *ChainHeadSubscription) Start() {
 	}
 }
 
-func (s *ChainHeadSubscription) Channel() <-chan types.ChainHead {
+func (s *ChainHeadClientPoller) Channel() <-chan types.ChainHead {
 	return s.data
 }
 
-func (s *ChainHeadSubscription) Close() {
+func (s *ChainHeadClientPoller) Close() {
 	s.stopChan <- true
 }
