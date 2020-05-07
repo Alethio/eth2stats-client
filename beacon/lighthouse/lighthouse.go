@@ -2,6 +2,7 @@ package lighthouse
 
 import (
 	"fmt"
+	"github.com/alethio/eth2stats-client/beacon/polling"
 	"net/http"
 
 	"github.com/dghubble/sling"
@@ -78,7 +79,7 @@ func (s *LighthouseHTTPClient) GetChainHead() (*types.ChainHead, error) {
 }
 
 func (c *LighthouseHTTPClient) SubscribeChainHeads() (beacon.ChainHeadSubscription, error) {
-	sub := NewChainHeadSubscription(c)
+	sub := polling.NewChainHeadClientPoller(c)
 	go sub.Start()
 
 	return sub, nil

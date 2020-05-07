@@ -6,14 +6,16 @@
 > More to come soon.
 
 ## Supported clients and protocols:
-- [ ] Prysm
-  - [x] GRPC
-  - [ ] HTTP
-- [ ] Lighthouse
-  - [X] HTTP
-  - [ ] Websockets
-- [ ] Artemis
-- [ ] ...
+
+| Client     | Supported | Protocols | Supported features                 |
+|------------|-----------|-----------|------------------------------------|
+| Prysm      | ✅         | GRPC      | Version, head, sync stats, metrics |
+| Lighthouse | ✅         | HTTP      | Version, head                      |
+| Teku       | ✅         | HTTP      | Version, head                     |
+| Lodestar   |           |           |                                    |
+| Nimbus     |           |           |                                    |
+| Trinity    |           |           |                                    |
+
   
 ## Current live deployments:
 
