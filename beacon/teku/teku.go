@@ -61,7 +61,7 @@ func (s *TekuHTTPClient) GetAttestationsInPoolCount() (int64, error) {
 }
 
 func (s *TekuHTTPClient) GetSyncStatus() (bool, error) {
-	path := fmt.Sprintf("beacon/head")
+	path := fmt.Sprintf("node/syncing")
 	type syncStatus struct {
 		Syncing bool `json:"syncing"`
 		// Note: ignore "sync_status" field
@@ -75,7 +75,7 @@ func (s *TekuHTTPClient) GetSyncStatus() (bool, error) {
 }
 
 func (s *TekuHTTPClient) GetChainHead() (*types.ChainHead, error) {
-	path := fmt.Sprintf("beacon/head")
+	path := fmt.Sprintf("beacon/chainhead")
 	type chainHead struct {
 		// Slight difference from lighthouse, to be standardized in new API proposal.
 		HeadSlot           uint64 `json:"head_slot"`
