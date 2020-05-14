@@ -74,7 +74,7 @@ You should now be able to see your node and it's stats on [eth2stats](https://et
 ### Step-by-step
 **Clone the repo**
 ```shell script
-git clone git@github.com:Alethio/eth2stats-client.git
+git clone https://github.com/Alethio/eth2stats-client.git
 cd eth2stats-client
 ```
 
