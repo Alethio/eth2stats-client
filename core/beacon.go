@@ -2,6 +2,7 @@ package core
 
 import (
 	"github.com/alethio/eth2stats-client/beacon/lighthouse"
+	"github.com/alethio/eth2stats-client/beacon/nimbus"
 	"github.com/alethio/eth2stats-client/beacon/teku"
 	"net"
 	"net/http"
@@ -42,6 +43,8 @@ func initBeaconClient(nodeType, nodeAddr string) beacon.Client {
 		return lighthouse.New(httpClient, nodeAddr)
 	case "teku":
 		return teku.New(httpClient, nodeAddr)
+	case "nimbus":
+		return nimbus.New(httpClient, nodeAddr)
 	default:
 		log.Fatalf("node type not recognized: %s", nodeType)
 		return nil

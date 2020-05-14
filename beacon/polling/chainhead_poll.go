@@ -42,8 +42,8 @@ func (s *ChainHeadClientPoller) Start() {
 			head, err := s.client.GetChainHead()
 			if err != nil {
 				log.Errorf("failed to poll for chain head")
-				close(s.data)
-				return
+				time.Sleep(PollingInterval)
+				continue
 			}
 			if lastHead == nil || *lastHead != *head {
 				s.data <- types.ChainHead{
