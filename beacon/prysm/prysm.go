@@ -9,6 +9,7 @@ import (
 	prysmAPI "github.com/prysmaticlabs/ethereumapis/eth/v1alpha1"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 
 	"github.com/alethio/eth2stats-client/beacon"
 	"github.com/alethio/eth2stats-client/types"
@@ -19,6 +20,7 @@ var ClientMaxReceiveMessageSize = 67108864
 
 type Config struct {
 	GRPCAddr string
+	TLSCert  string
 }
 
 type PrysmGRPCClient struct {
@@ -31,9 +33,21 @@ type PrysmGRPCClient struct {
 func New(config Config) *PrysmGRPCClient {
 	log.Info("setting up beacon client connection")
 
+	var dialOpt grpc.DialOption
+	if config.TLSCert != "" {
+		creds, err := credentials.NewClientTLSFromFile(config.TLSCert, "")
+		if err != nil {
+			log.Fatalf("failed to create tls credentials: %v", err)
+		}
+		dialOpt = grpc.WithTransportCredentials(creds)
+	} else {
+		dialOpt = grpc.WithInsecure()
+		log.Warn("no tls certificate provided; will use insecure connection to beacon chain")
+	}
+
 	conn, err := grpc.Dial(
 		config.GRPCAddr,
-		grpc.WithInsecure(),
+		dialOpt,
 		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(ClientMaxReceiveMessageSize)),
 	)
 	if err != nil {

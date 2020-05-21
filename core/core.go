@@ -26,6 +26,7 @@ type Eth2statsConfig struct {
 type BeaconNodeConfig struct {
 	Type        string
 	Addr        string
+	TLSCert     string
 	MetricsAddr string
 }
 
@@ -49,7 +50,7 @@ type Core struct {
 func New(config Config) *Core {
 	c := Core{
 		config:       config,
-		beaconClient: initBeaconClient(config.BeaconNode.Type, config.BeaconNode.Addr),
+		beaconClient: initBeaconClient(config.BeaconNode.Type, config.BeaconNode.Addr, config.BeaconNode.TLSCert),
 	}
 
 	c.initEth2statsClient()

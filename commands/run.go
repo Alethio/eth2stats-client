@@ -35,6 +35,7 @@ var runCmd = &cobra.Command{
 					BeaconNode: core.BeaconNodeConfig{
 						Type:        viper.GetString("beacon.type"),
 						Addr:        viper.GetString("beacon.addr"),
+						TLSCert:     viper.GetString("beacon.tls-cert"),
 						MetricsAddr: viper.GetString("beacon.metrics-addr"),
 					},
 					DataFolder: viper.GetString("data.folder"),
@@ -74,6 +75,9 @@ func init() {
 
 	runCmd.Flags().String("beacon.addr", "", "Beacon node endpoint address")
 	viper.BindPFlag("beacon.addr", runCmd.Flag("beacon.addr"))
+
+	runCmd.Flags().String("beacon.tls-cert", "", "Beacon node certificate to secure gRPC connection")
+	viper.BindPFlag("beacon.tls-cert", runCmd.Flag("beacon.tls-cert"))
 
 	runCmd.Flags().String("beacon.metrics-addr", "", "The url where the beacon client exposes metrics (used for memory usage)")
 	viper.BindPFlag("beacon.metrics-addr", runCmd.Flag("beacon.metrics-addr"))
