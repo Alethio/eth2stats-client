@@ -95,7 +95,16 @@ func (s *TekuHTTPClient) GetChainHead() (*types.ChainHead, error) {
 	}
 	headSlot, err := strconv.ParseUint(head.HeadSlot, 0, 64)
 	if err != nil {
-		return nil, err
+		// pre genesis this is empty, return a default
+		zeroChainHead := types.ChainHead{
+			HeadSlot:           0,
+			HeadBlockRoot:      "0x0",
+			FinalizedSlot:      0,
+			FinalizedBlockRoot: "0x0",
+			JustifiedSlot:      0,
+			JustifiedBlockRoot: "0x0",
+		}
+		return &zeroChainHead, nil
 	}
 	finalizedSlot, err := strconv.ParseUint(head.FinalizedSlot, 0, 64)
 	if err != nil {
