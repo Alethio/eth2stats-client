@@ -84,7 +84,7 @@ func (c *Core) connectToServer() error {
 		return err
 	}
 
-	log.WithField("genesisTime", genesisTime).Info("got beacon client genesis time")
+	log.WithField("genesisTime", genesisTime).Info("beacon client genesis time")
 
 	log.Info("awaiting connection to eth2stats server")
 	resp, err := c.statsService.Connect(c.contextWithToken(), &proto.ConnectRequest{

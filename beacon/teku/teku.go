@@ -2,9 +2,10 @@ package teku
 
 import (
 	"fmt"
-	"github.com/alethio/eth2stats-client/beacon/polling"
 	"net/http"
 	"strconv"
+
+	"github.com/alethio/eth2stats-client/beacon/polling"
 
 	"github.com/dghubble/sling"
 	"github.com/sirupsen/logrus"
@@ -40,7 +41,8 @@ func (s *TekuHTTPClient) GetGenesisTime() (int64, error) {
 	}
 	genesisTime, err := strconv.ParseInt(*genesis, 0, 64)
 	if err != nil {
-		return 0, err
+		log.Warn("failed to read genesis time")
+		return 0, nil
 	}
 	return genesisTime, nil
 }
