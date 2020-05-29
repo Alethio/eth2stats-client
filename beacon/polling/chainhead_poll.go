@@ -2,7 +2,8 @@ package polling
 
 import (
 	"github.com/alethio/eth2stats-client/beacon"
-	"github.com/prometheus/common/log"
+	"github.com/sirupsen/logrus"
+
 	"time"
 
 	"github.com/alethio/eth2stats-client/types"
@@ -11,6 +12,8 @@ import (
 const (
 	PollingInterval = time.Second
 )
+
+var log = logrus.WithField("module", "polling")
 
 type ChainHeadClientPoller struct {
 	data   chan types.ChainHead
