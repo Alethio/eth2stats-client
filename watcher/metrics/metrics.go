@@ -96,18 +96,19 @@ func (w *Watcher) extractMemUsage(metrics map[string]*io_prometheus_client.Metri
 	}
 
 	memMetric := metric[0]
-	gauge := memMetric.GetGauge()
-	if gauge == nil {
-		log.Warn("memory metric is not of type gauge")
+
+	var value float64
+
+	if gauge := memMetric.GetGauge(); gauge != nil && gauge.Value != nil {
+		value = gauge.GetValue()
+	} else if untyped := memMetric.GetUntyped(); untyped != nil {
+		value = untyped.GetValue()
+	} else {
+		log.Info("could not extract mem value")
 		return
 	}
 
-	if gauge.Value == nil {
-		log.Warn("memory gauge has nil value")
-		return
-	}
-
-	memInt := int64(gauge.GetValue())
+	memInt := int64(value)
 
 	w.mu.Lock()
 	w.data.MemUsage = &memInt
