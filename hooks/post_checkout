@@ -1,0 +1,5 @@
+#!/bin/bash
+# download qemu static files for the requested architectures
+
+# arm64
+curl -L https://github.com/multiarch/qemu-user-static/releases/latest/download/qemu-aarch64-static.tar.gz | tar xzv

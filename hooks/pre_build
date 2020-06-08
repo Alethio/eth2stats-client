@@ -1,0 +1,3 @@
+#!/bin/bash
+# register qemu static files
+docker run --rm --privileged multiarch/qemu-user-static:register --reset

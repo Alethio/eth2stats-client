@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# push amd64 image
+docker push ${IMAGE_NAME}-amd64
+
+# push arm64v8 image
+docker push ${IMAGE_NAME}-arm64
