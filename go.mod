@@ -2,6 +2,7 @@ module github.com/alethio/eth2stats-client
 
 require (
 	github.com/alethio/eth2stats-proto v0.0.0-20200122120216-4625b646ae41
+	github.com/avast/retry-go v2.6.0+incompatible
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dghubble/sling v1.3.0
 	github.com/elazarl/goproxy v0.0.0-20191011121108-aa519ddbe484 // indirect

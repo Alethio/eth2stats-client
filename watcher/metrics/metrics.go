@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/avast/retry-go"
 	"github.com/parnurzeal/gorequest"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
@@ -45,13 +46,18 @@ func (w *Watcher) Run() {
 }
 
 func (w *Watcher) poll() {
-	metrics, err := w.query()
-	if err != nil {
-		log.Errorf("failed to poll metrics: %s", err)
-		return
-	}
-
-	w.monitorMetrics(metrics)
+	_ = retry.Do(
+		func() error {
+			metrics, err := w.query()
+			if err != nil {
+				log.Warnf("failed to poll metrics: %s", err)
+				return err
+			}
+			w.monitorMetrics(metrics)
+			return nil
+		},
+		retry.Delay(time.Minute),
+	)
 }
 
 func (w *Watcher) query() (map[string]*io_prometheus_client.MetricFamily, error) {
