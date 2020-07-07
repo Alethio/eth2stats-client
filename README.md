@@ -65,6 +65,18 @@ docker run -d --name eth2stats --restart always --network="host" \
 
 You should now be able to see your node and it's stats on [eth2stats](https://eth2stats.io).
 
+### Securing your gRPC connection to the Beacon Chain
+
+If your Beacon node uses a TLS connection for its GRPC endpoint you need to provide a valid certificate to `eth2stats-client` via the `--beacon.tls-cert` flag:
+
+```shell script
+docker run -d --name eth2stats --restart always --network="host" \
+      -v ~/eth2stats/data:/data \
+      ... # omitted for brevity
+      --beacon.type="prysm" --beacon.addr="localhost:4000" --beacon.tls-cert "/data/cert.pem"
+```
+
+Have a look at Prysm's documentation to learn [how to start their Beacon Chain with enabled TLS](https://docs.prylabs.network/docs/prysm-usage/secure-grpc) and how to [generate and use self-signed certificates](https://docs.prylabs.network/docs/prysm-usage/secure-grpc#generating-self-signed-tls-certificates).
 
 ## Building from source
 ### Prerequisites
