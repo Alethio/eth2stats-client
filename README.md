@@ -2,19 +2,20 @@
 
 > This is an intial POC release of the eth2stats network monitoring suite
 > 
-> Currently it supports Prysm and Lighthouse.
-> More to come soon.
+> It supports Prysm, Lighthouse, Teku, Nimbus and Lodestar.
+> However, none of the APIs are standardized, 
+> and once the standard lands the client will be refactored to support just that.
 
 ## Supported clients and protocols:
 
-| Client     | Supported | Protocols | Supported features                 |
-|------------|-----------|-----------|------------------------------------|
-| Prysm      | ✅         | GRPC      | Version, head, sync stats, memory |
-| Lighthouse | ✅         | HTTP      | Version, head                      |
-| Teku       | ✅         | HTTP      | Version, head, memory             |
-| Lodestar   |           |           |                                    |
-| Nimbus     |           |           |                                    |
-| Trinity    |           |           |                                    |
+| Client     | Supported | Protocols | Supported features                                   |
+|------------|-----------|-----------|------------------------------------------------------|
+| Prysm      | ✅        | GRPC      | Version, head, sync stats, memory, attestation count |
+| Lighthouse | ✅        | HTTP      | Version, head, sync stats, memory                    |
+| Teku       | ✅        | HTTP      | Version, head, sync stats, memory                    |
+| Lodestar   | ✅        | HTTP      | Version, head, sync stats, memory                    |
+| Nimbus     | ✅        | HTTP      | Version, head, sync stats, memory                    |
+| Trinity    |           |           |                                                      |
 
   
 ## Current live deployments:
@@ -99,29 +100,20 @@ make build
 
 **Run**
 
-Example for Prysm:
-```shell script
-./eth2stats-client run \
-                   --eth2stats.node-name="YourNode" \
-                   --eth2stats.addr="grpc.sapphire.eth2stats.io:443" --eth2stats.tls=true \
-                   --beacon.type="prysm" --beacon.addr="localhost:4000"
-```
-
 Example for Lighthouse:
 ```shell script
 ./eth2stats-client run \
                    --eth2stats.node-name="YourNode" \
                    --eth2stats.addr="grpc.summer.eth2stats.io:443" --eth2stats.tls=true \
-                   --beacon.type="lighthouse" --beacon.addr="localhost:5052"
+                   --beacon.type="lighthouse" --beacon.addr="http://localhost:5052"
 ```
 
-Example for Teku:
-```shell script
-./eth2stats-client run \
-                   --eth2stats.node-name="YourNode" \
-                   --eth2stats.addr="grpc.schlesi.eth2stats.io:443" --eth2stats.tls=true \
-                   --beacon.type="teku" --beacon.addr="localhost:5051"
-```
+Note that since Prysm uses GRPC, the addr flag does not start with `http://`, unlike the others.
+So it would be like `--beacon.addr="localhost:4000"`.
+
+For the other clients, it is similar as lighthouse, except you replace the name.
+
+Client names are `prysm`, `lighthouse`, `teku`, `nimbus`, `lodestar`.
 
 #### Memory usage metrics
 
@@ -131,5 +123,7 @@ Default metrics endpoints of supported clients:
 - Lighthouse: `127.0.0.1:5052/metrics` (under regular http API address and port), currently not supporting the memory metric.
 - Teku: `127.0.0.1:8008/metrics` (using `--metrics-enabled=true` in Teku options)
 - Prysm: `127.0.0.1:8080/metrics`, monitoring enabled by default.
+- Nimbus: `127.0.0.1:8008/metrics` (using `--metrics --metrics-port=8008`)
+- Lodestar: `127.0.0.1:5000/metrics` (configure with `"metrics": { "enabled": true, "serverPort": 5000}` in config JSON)
 
 The `process_resident_memory_bytes` gauge is extracted from the Prometheus metrics endpoint.
