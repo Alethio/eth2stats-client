@@ -59,24 +59,21 @@ func (s *LodestarHTTPClient) GetAttestationsInPoolCount() (int64, error) {
 func (s *LodestarHTTPClient) GetSyncStatus() (bool, error) {
 	path := fmt.Sprintf("node/syncing")
 	type lodestarSyncing struct {
-		//StartingBlock string `json:"starting_block"`
-		CurrentBlock string `json:"current_block"`
-		HighestBlock string `json:"highest_block"`
+		// Below 3 fields are present during sync only.
+		//StartingBlock string `json:"starting_block,omitempty"`
+		CurrentBlock string `json:"current_block,omitempty"`
+		HighestBlock string `json:"highest_block,omitempty"`
+		// may be the only field after sync completes.
+		Syncing bool `json:"syncing,omitempty"`
 	}
 	status := new(lodestarSyncing)
 	_, err := s.api.New().Get(path).ReceiveSuccess(status)
 	if err != nil {
 		return false, err
 	}
-	currentBlock, err := strconv.ParseUint(status.CurrentBlock, 0, 64)
-	if err != nil {
-		return false, err
-	}
-	highestBlock, err := strconv.ParseUint(status.HighestBlock, 0, 64)
-	if err != nil {
-		return false, err
-	}
-	return currentBlock < highestBlock, nil
+	currentBlock, _ := strconv.ParseUint(status.CurrentBlock, 0, 64)
+	highestBlock, _ := strconv.ParseUint(status.HighestBlock, 0, 64)
+	return status.Syncing || currentBlock < highestBlock, nil
 }
 
 func (s *LodestarHTTPClient) GetChainHead() (*types.ChainHead, error) {
