@@ -51,8 +51,8 @@ func initBeaconClient(nodeType, nodeAddr, nodeCert string) beacon.Client {
 		return teku.New(httpClient, nodeAddr)
 	case "nimbus":
 		return nimbus.New(httpClient, nodeAddr)
-	case "lodestar":
-		return lodestar.New(httpClient, nodeAddr)
+	case "v1":
+		return v1.New(httpClient, nodeAddr)
 	default:
 		log.Fatalf("node type not recognized: %s", nodeType)
 		return nil
