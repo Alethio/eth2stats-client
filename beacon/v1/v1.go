@@ -100,12 +100,8 @@ func (s *V1HTTPClient) GetSyncStatus() (bool, error) {
 }
 
 func (s *V1HTTPClient) GetChainHead() (*types.ChainHead, error) {
-	slot, err := s.getBlockSlot("head")
-	if err != nil {
-		return nil, err
-	}
+
 	typesChainHead := new(types.ChainHead)
-	typesChainHead.HeadSlot = slot
 
 	headRootPath := "v1/beacon/blocks/head/root"
 	type headRootType struct {
@@ -113,13 +109,18 @@ func (s *V1HTTPClient) GetChainHead() (*types.ChainHead, error) {
 			HeadBlockRoot string `json:"root,omitempty"`
 		} `json:"data,omitempty"`
 	}
-
 	headRootResponse := new(headRootType)
-	_, err = s.api.New().Get(headRootPath).ReceiveSuccess(headRootResponse)
+	_, err := s.api.New().Get(headRootPath).ReceiveSuccess(headRootResponse)
 	if err != nil {
 		return nil, err
 	}
 	typesChainHead.HeadBlockRoot = headRootResponse.Data.HeadBlockRoot
+
+	slot, err := s.getBlockSlot(typesChainHead.HeadBlockRoot)
+	if err != nil {
+		return nil, err
+	}
+	typesChainHead.HeadSlot = slot
 
 	finalityCheckpointsPath := "v1/beacon/state/head/finality_checkpoints"
 	type finalityCheckpointsType struct {
