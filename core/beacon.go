@@ -1,7 +1,6 @@
 package core
 
 import (
-	"github.com/alethio/eth2stats-client/beacon/lodestar"
 	"net"
 	"net/http"
 	"net/url"
@@ -12,6 +11,7 @@ import (
 	"github.com/alethio/eth2stats-client/beacon/nimbus"
 	"github.com/alethio/eth2stats-client/beacon/prysm"
 	"github.com/alethio/eth2stats-client/beacon/teku"
+	"github.com/alethio/eth2stats-client/beacon/v1"
 )
 
 func initBeaconClient(nodeType, nodeAddr, nodeCert string) beacon.Client {
