@@ -70,7 +70,7 @@ func init() {
 	runCmd.Flags().Bool("eth2stats.tls", true, "Enable/disable TLS for eth2stats server connection")
 	viper.BindPFlag("eth2stats.tls", runCmd.Flag("eth2stats.tls"))
 
-	runCmd.Flags().String("beacon.type", "", "Beacon node type [prysm, lighthouse]")
+	runCmd.Flags().String("beacon.type", "", "Beacon node type [prysm, lighthouse, teku, nimbus, v1]")
 	viper.BindPFlag("beacon.type", runCmd.Flag("beacon.type"))
 
 	runCmd.Flags().String("beacon.addr", "", "Beacon node endpoint address")

@@ -2,20 +2,19 @@
 
 > This is an intial POC release of the eth2stats network monitoring suite
 > 
-> It supports Prysm, Lighthouse, Teku, Nimbus and Lodestar.
-> However, none of the APIs are standardized, 
-> and once the standard lands the client will be refactored to support just that.
+> It supports Prysm, Lighthouse, Teku, Nimbus and v1 of standardized api (Lodestar).
+> Once the standard lands the client will be refactored to support just that.
 
 ## Supported clients and protocols:
 
-| Client     | Supported | Protocols | Supported features                                   |
-|------------|-----------|-----------|------------------------------------------------------|
-| Prysm      | ✅        | GRPC      | Version, head, sync stats, memory, attestation count |
-| Lighthouse | ✅        | HTTP      | Version, head, sync stats, memory                    |
-| Teku       | ✅        | HTTP      | Version, head, sync stats, memory                    |
-| Lodestar   | ✅        | HTTP      | Version, head, sync stats, memory                    |
-| Nimbus     | ✅        | HTTP      | Version, head, sync stats, memory                    |
-| Trinity    |           |           |                                                      |
+| Client        | Supported | Protocols | Supported features                                   |
+|---------------|-----------|-----------|------------------------------------------------------|
+| Prysm         | ✅        | GRPC      | Version, head, sync stats, memory, attestation count |
+| Lighthouse    | ✅        | HTTP      | Version, head, sync stats, memory                    |
+| Teku          | ✅        | HTTP      | Version, head, sync stats, memory                    |
+| Lodestar (v1) | ✅        | HTTP      | Version, head, sync stats, memory, attestation count |
+| Nimbus        | ✅        | HTTP      | Version, head, sync stats, memory                    |
+| Trinity       |          |           |                                                      |
 
   
 ## Current live deployments:
