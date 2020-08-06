@@ -34,9 +34,9 @@ func initBeaconClient(nodeType, nodeAddr, nodeCert string) beacon.Client {
 		log.Fatal("custom TLS certificates are currently only supported for GRPC connections")
 	}
 	var netTransport = &http.Transport{
-		Dial: (&net.Dialer{
+		DialContext: (&net.Dialer{
 			Timeout: 15 * time.Second,
-		}).Dial,
+		}).DialContext,
 		TLSHandshakeTimeout: 15 * time.Second,
 	}
 	var httpClient = &http.Client{

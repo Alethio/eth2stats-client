@@ -1,13 +1,14 @@
 package metrics
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/avast/retry-go"
-	"github.com/parnurzeal/gorequest"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
 	"github.com/sirupsen/logrus"
@@ -27,20 +28,41 @@ type Watcher struct {
 	data struct {
 		MemUsage *int64
 	}
+	client *http.Client // re-use for metrics requests.
 }
 
 func New(config Config) *Watcher {
+	var netTransport = &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout: PollDialTimeout,
+		}).DialContext,
+		// make keep-alives longer than the interval to make client re-use effective.
+		IdleConnTimeout:     2 * PollingInterval,
+		TLSHandshakeTimeout: PollTLSTimeout,
+	}
+	var httpClient = &http.Client{
+		Timeout:   PollTimeout,
+		Transport: netTransport,
+	}
 	return &Watcher{
 		config: config,
+		client: httpClient,
 	}
 }
 
-func (w *Watcher) Run() {
+func (w *Watcher) Run(ctx context.Context) {
+	log.Info("Started polling metrics")
 	w.poll()
+	ticker := time.NewTicker(PollingInterval)
 	for {
 		select {
-		case <-time.Tick(PollingInterval):
+		case <-ticker.C:
 			w.poll()
+			break
+		case <-ctx.Done():
+			ticker.Stop()
+			log.Info("Stopped polling metrics")
+			return
 		}
 	}
 }
@@ -48,6 +70,7 @@ func (w *Watcher) Run() {
 func (w *Watcher) poll() {
 	_ = retry.Do(
 		func() error {
+			log.Info("querying metrics")
 			metrics, err := w.query()
 			if err != nil {
 				log.Warnf("failed to poll metrics: %s", err)
@@ -56,17 +79,23 @@ func (w *Watcher) poll() {
 			w.monitorMetrics(metrics)
 			return nil
 		},
-		retry.Delay(time.Minute),
+		retry.Attempts(PollRetryAttempts),
 	)
 }
 
 func (w *Watcher) query() (map[string]*io_prometheus_client.MetricFamily, error) {
-	request := gorequest.New()
-	resp, _, errs := request.Get(w.config.MetricsURL).End()
-	if len(errs) > 0 {
-		log.Error(errs)
-		return nil, errs[0]
+	// Don't keep a request open for longer than the interval time.
+	req, err := http.NewRequest("GET", w.config.MetricsURL, nil)
+	if err != nil {
+		return nil, err
 	}
+	// disable caching for up-to-date metrics (if running behind a proxy or something else)s
+	req.Header.Set("Cache-control", "no-cache")
+	resp, err := w.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	log.Trace("done querying metrics")
 
 	if resp.StatusCode != http.StatusOK {
 		err := fmt.Errorf("metrics query responded with status code != 200")
@@ -116,7 +145,9 @@ func (w *Watcher) extractMemUsage(metrics map[string]*io_prometheus_client.Metri
 
 	memInt := int64(value)
 
+	log.Tracef("mem usage: %d", memInt)
 	w.mu.Lock()
 	w.data.MemUsage = &memInt
 	w.mu.Unlock()
+	log.Tracef("mem usage written: %d", memInt)
 }
