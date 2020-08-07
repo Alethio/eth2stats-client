@@ -38,8 +38,15 @@ func New(service proto.TelemetryClient, beaconClient beacon.Client, watcher *met
 	}
 }
 
-func (t *Telemetry) Run() {
+func (t *Telemetry) Run(ctx context.Context) {
 	for {
+		// Check if the service needs to stop yet.
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			break
+		}
 		log.Trace("sending telemetry")
 
 		t.pollPeers()

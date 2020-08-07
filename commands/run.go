@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -23,40 +24,61 @@ var runCmd = &cobra.Command{
 		signal.Notify(stopChan, syscall.SIGINT)
 		signal.Notify(stopChan, syscall.SIGTERM)
 
+		ctx, cancel := context.WithCancel(context.Background())
+
+		// Wait for stop signal in parallel to real work.
+		// Then cancel the work context to shut things down gracefully.
 		go func() {
-			for {
-				c := core.New(core.Config{
-					Eth2stats: core.Eth2statsConfig{
-						Version:    fmt.Sprintf("eth2stats-client/%s", RootCmd.Version),
-						ServerAddr: viper.GetString("eth2stats.addr"),
-						TLS:        viper.GetBool("eth2stats.tls"),
-						NodeName:   viper.GetString("eth2stats.node-name"),
-					},
-					BeaconNode: core.BeaconNodeConfig{
-						Type:        viper.GetString("beacon.type"),
-						Addr:        viper.GetString("beacon.addr"),
-						TLSCert:     viper.GetString("beacon.tls-cert"),
-						MetricsAddr: viper.GetString("beacon.metrics-addr"),
-					},
-					DataFolder: viper.GetString("data.folder"),
-				})
-
-				err := c.Run()
-				if err != nil {
-					log.Error(err)
-				}
-
-				// we're only getting here if there's been no error during set up
-				time.Sleep(time.Second * 12)
-				log.Info("retrying...")
+			select {
+			case <-stopChan:
+				log.Info("got stop signal. finishing work.")
+				cancel()
 			}
 		}()
 
-		select {
-		case <-stopChan:
-			log.Info("got stop signal. finishing work.")
-			log.Info("work done. goodbye!")
+	workLoop:
+		for {
+			c := core.New(core.Config{
+				Eth2stats: core.Eth2statsConfig{
+					Version:    fmt.Sprintf("eth2stats-client/%s", RootCmd.Version),
+					ServerAddr: viper.GetString("eth2stats.addr"),
+					TLS:        viper.GetBool("eth2stats.tls"),
+					NodeName:   viper.GetString("eth2stats.node-name"),
+				},
+				BeaconNode: core.BeaconNodeConfig{
+					Type:        viper.GetString("beacon.type"),
+					Addr:        viper.GetString("beacon.addr"),
+					TLSCert:     viper.GetString("beacon.tls-cert"),
+					MetricsAddr: viper.GetString("beacon.metrics-addr"),
+				},
+				DataFolder: viper.GetString("data.folder"),
+			})
+
+			err := c.Run(ctx)
+
+			// Check if the service needs to stop yet.
+			select {
+			case <-ctx.Done():
+				break workLoop
+			default:
+			}
+
+			if err == nil {
+				log.Warn("eth2stats work stopped unexpectedly without error")
+			} else {
+				log.Error(err)
+			}
+
+			// we're only getting here if there's been a setup error that is recoverable
+			log.Infof("retrying in %s...", RetryInterval)
+			select {
+			case <-ctx.Done():
+				break workLoop
+			case <-time.After(RetryInterval):
+			}
 		}
+
+		log.Info("work done. goodbye!")
 	},
 }
 

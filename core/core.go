@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -59,7 +60,6 @@ func New(config Config) *Core {
 		c.metricsWatcher = metricsWatcher.New(metricsWatcher.Config{
 			MetricsURL: config.BeaconNode.MetricsAddr,
 		})
-		go c.metricsWatcher.Run()
 	}
 
 	err := c.searchToken()
@@ -123,7 +123,7 @@ func (c *Core) connectToServer() error {
 	return nil
 }
 
-func (c *Core) watchNewHeads() {
+func (c *Core) watchNewHeads(ctx context.Context) {
 	for {
 		log.Info("setting up chain heads subscription")
 		sub, err := c.beaconClient.SubscribeChainHeads()
@@ -131,6 +131,10 @@ func (c *Core) watchNewHeads() {
 			// TODO handle gracefully
 			log.Fatal(err)
 		}
+		go func() {
+			<-ctx.Done()
+			sub.Close()
+		}()
 
 		limiter := rate.NewLimiter(1, 1)
 
@@ -156,37 +160,43 @@ func (c *Core) watchNewHeads() {
 	}
 }
 
-func (c *Core) sendHeartbeat() {
-	for range time.Tick(HeartbeatInterval) {
-		log.Trace("sending heartbeat")
+func (c *Core) sendHeartbeat(ctx context.Context) {
+	ticker := time.NewTicker(HeartbeatInterval)
+	for {
+		select {
+		case <-ticker.C:
+			log.Trace("sending heartbeat")
 
-		_, err := c.statsService.Heartbeat(c.contextWithToken(), &proto.HeartbeatRequest{})
-		if err != nil {
-			log.Fatalf("sending heartbeat: %s", err)
+			_, err := c.statsService.Heartbeat(c.contextWithToken(), &proto.HeartbeatRequest{})
+			if err != nil {
+				log.Fatalf("sending heartbeat: %s", err)
 
-			continue
+				continue
+			}
+			log.Trace("done sending heartbeat")
+		case <-ctx.Done():
+			ticker.Stop()
+			return
 		}
-		log.Trace("done sending heartbeat")
 	}
 }
 
-func (c *Core) Run() error {
+func (c *Core) Run(ctx context.Context) error {
 	err := c.connectToServer()
 	if err != nil {
 		return fmt.Errorf("setting up: %s", err)
 	}
 
-	// TODO handle gracefully
-	go c.watchNewHeads()
+	if c.metricsWatcher != nil {
+		go c.metricsWatcher.Run(ctx)
+	}
+
+	go c.watchNewHeads(ctx)
 
 	t := telemetry.New(c.telemetryService, c.beaconClient, c.metricsWatcher, c.contextWithToken)
-	go t.Run()
+	go t.Run(ctx)
 
 	// block while sending heartbeat
-	c.sendHeartbeat()
+	c.sendHeartbeat(ctx)
 	return nil
-}
-
-func (c *Core) Close() {
-	log.Info("Got stop signal")
 }
