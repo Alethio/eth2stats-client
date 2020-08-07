@@ -1,9 +1,8 @@
-# build for amd64
-FROM golang:1.13.5 AS build
+FROM golang:alpine as build
 
-ENV ROOT "/tmp/eth2stats-client"
+RUN apk add --no-cache ca-certificates build-base
 
-WORKDIR $ROOT
+WORKDIR /build
 
 ADD go.mod go.mod
 ADD go.sum go.sum
@@ -12,13 +11,13 @@ ADD . .
 
 RUN make build
 
-# create application container for amd64
-FROM ubuntu
+FROM scratch
 
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY --from=build /etc/ssl/certs/ca-certificates.crt \
+     /etc/ssl/certs/ca-certificates.crt
+
+COPY --from=build /build/eth2stats-client /eth2stats-client
 
 WORKDIR /
-
-COPY --from=build /tmp/eth2stats-client/eth2stats-client .
 
 ENTRYPOINT ["/eth2stats-client"]
