@@ -35,7 +35,7 @@ func (s *ChainHeadSubscription) FeedFromStream(stream prysmAPI.BeaconChain_Strea
 				return
 			}
 
-			log.WithField("headSlot", data.GetHeadSlot()).Info("got chain head")
+			log.WithField("headSlot", data.GetHeadSlot()).Debug("got chain head")
 
 			s.data <- types.ChainHead{
 				HeadSlot:           data.HeadSlot,
