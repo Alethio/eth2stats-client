@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/alethio/eth2stats-client/beacon/polling"
 	"net/http"
+	"strconv"
 
 	"github.com/dghubble/sling"
 	"github.com/sirupsen/logrus"
@@ -60,11 +61,11 @@ func (s *LighthouseHTTPClient) GetSyncStatus() (bool, error) {
 func (s *LighthouseHTTPClient) GetChainHead() (*types.ChainHead, error) {
 	path := fmt.Sprintf("beacon/head")
 	type chainHead struct {
-		HeadSlot           uint64 `json:"slot"`
+		HeadSlot           string `json:"slot"`
 		HeadBlockRoot      string `json:"block_root"`
-		FinalizedSlot      uint64 `json:"finalized_slot"`
+		FinalizedSlot      string `json:"finalized_slot"`
 		FinalizedBlockRoot string `json:"finalized_block_root"`
-		JustifiedSlot      uint64 `json:"justified_slot"`
+		JustifiedSlot      string `json:"justified_slot"`
 		JustifiedBlockRoot string `json:"justified_block_root"`
 	}
 
@@ -73,8 +74,27 @@ func (s *LighthouseHTTPClient) GetChainHead() (*types.ChainHead, error) {
 	if err != nil {
 		return nil, err
 	}
+	headSlot, err := strconv.ParseUint(head.HeadSlot, 0, 64)
+	if err != nil {
+		return nil, err
+	}
+	finalizedSlot, err := strconv.ParseUint(head.FinalizedSlot, 0, 64)
+	if err != nil {
+		return nil, err
+	}
+	justifiedSlot, err := strconv.ParseUint(head.JustifiedSlot, 0, 64)
+	if err != nil {
+		return nil, err
+	}
 	// TODO this returns roots with 0x while prysm doesn't ... which one is the correct form?
-	typesChainHead := types.ChainHead(*head)
+	typesChainHead := types.ChainHead{
+		HeadSlot:           headSlot,
+		HeadBlockRoot:      head.HeadBlockRoot,
+		FinalizedSlot:      finalizedSlot,
+		FinalizedBlockRoot: head.FinalizedBlockRoot,
+		JustifiedSlot:      justifiedSlot,
+		JustifiedBlockRoot: head.JustifiedBlockRoot,
+	}
 	return &typesChainHead, nil
 }
 
