@@ -132,7 +132,7 @@ func (s *V1HTTPClient) GetChainHead() (*types.ChainHead, error) {
 	}
 	typesChainHead.HeadSlot = slot
 
-	finalityCheckpointsPath := "eth/v1/beacon/state/head/finality_checkpoints"
+	finalityCheckpointsPath := "eth/v1/beacon/states/head/finality_checkpoints"
 	type finalityCheckpointsType struct {
 		Data struct {
 			Finalized struct {
