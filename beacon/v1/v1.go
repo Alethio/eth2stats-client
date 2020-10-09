@@ -9,9 +9,27 @@ import (
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 var log = logrus.WithField("module", "v1")
+
+// JsonUint64 is a helper to make both string and integer formatted uint64 numbers unmarshal correctly.
+type JsonUint64 uint64
+
+func (v *JsonUint64) UnmarshalJSON(b []byte) error {
+	x := string(b)
+	x = strings.TrimSpace(x)
+	if len(x) >= 2 && x[0] == '"' && x[len(x)-1] == '"' {
+		x = x[1 : len(x)-1]
+	}
+	d, err := strconv.ParseUint(x, 0, 64)
+	if err != nil {
+		return err
+	}
+	*v = JsonUint64(d)
+	return nil
+}
 
 type V1HTTPClient struct {
 	api    *sling.Sling
@@ -19,7 +37,7 @@ type V1HTTPClient struct {
 }
 
 func (s *V1HTTPClient) GetVersion() (string, error) {
-	path := "v1/node/version"
+	path := "eth/v1/node/version"
 	type versionResponse struct {
 		Data struct {
 			Version string `json:"version,omitempty"`
@@ -34,10 +52,10 @@ func (s *V1HTTPClient) GetVersion() (string, error) {
 }
 
 func (s *V1HTTPClient) GetGenesisTime() (int64, error) {
-	path := "v1/beacon/genesis"
+	path := "eth/v1/beacon/genesis"
 	type genesisResponse struct {
 		Data struct {
-			GenesisTime string `json:"genesis_time,omitempty"`
+			GenesisTime JsonUint64 `json:"genesis_time,omitempty"`
 		} `json:"data,omitempty"`
 	}
 	response := new(genesisResponse)
@@ -45,15 +63,11 @@ func (s *V1HTTPClient) GetGenesisTime() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	genesisTime, err := strconv.ParseInt(response.Data.GenesisTime, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return genesisTime, nil
+	return int64(response.Data.GenesisTime), nil
 }
 
 func (s *V1HTTPClient) GetPeerCount() (int64, error) {
-	path := "v1/node/peers"
+	path := "eth/v1/node/peers"
 	type peersResponse struct {
 		Data []struct {
 		} `json:"data,omitempty"`
@@ -67,7 +81,7 @@ func (s *V1HTTPClient) GetPeerCount() (int64, error) {
 }
 
 func (s *V1HTTPClient) GetAttestationsInPoolCount() (int64, error) {
-	path := "v1/beacon/pool/attestations"
+	path := "eth/v1/beacon/pool/attestations"
 	type attestationsResponse struct {
 		Data []struct {
 		} `json:"data,omitempty"`
@@ -81,10 +95,10 @@ func (s *V1HTTPClient) GetAttestationsInPoolCount() (int64, error) {
 }
 
 func (s *V1HTTPClient) GetSyncStatus() (bool, error) {
-	path := "v1/node/syncing"
+	path := "eth/v1/node/syncing"
 	type syncingResponse struct {
 		Data struct {
-			SyncDistance string `json:"sync_distance,omitempty"`
+			SyncDistance JsonUint64 `json:"sync_distance,omitempty"`
 		} `json:"data,omitempty"`
 	}
 	response := new(syncingResponse)
@@ -92,18 +106,14 @@ func (s *V1HTTPClient) GetSyncStatus() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	syncDistance, err := strconv.ParseUint(response.Data.SyncDistance, 10, 64)
-	if err != nil {
-		return false, err
-	}
-	return syncDistance != 0, nil
+	return response.Data.SyncDistance != 0, nil
 }
 
 func (s *V1HTTPClient) GetChainHead() (*types.ChainHead, error) {
 
 	typesChainHead := new(types.ChainHead)
 
-	headRootPath := "v1/beacon/blocks/head/root"
+	headRootPath := "eth/v1/beacon/blocks/head/root"
 	type headRootType struct {
 		Data struct {
 			HeadBlockRoot string `json:"root,omitempty"`
@@ -122,16 +132,16 @@ func (s *V1HTTPClient) GetChainHead() (*types.ChainHead, error) {
 	}
 	typesChainHead.HeadSlot = slot
 
-	finalityCheckpointsPath := "v1/beacon/state/head/finality_checkpoints"
+	finalityCheckpointsPath := "eth/v1/beacon/state/head/finality_checkpoints"
 	type finalityCheckpointsType struct {
 		Data struct {
 			Finalized struct {
-				Root  string `json:"root,omitempty"`
-				Epoch string `json:"epoch,omitempty"`
+				Root  string     `json:"root,omitempty"`
+				Epoch JsonUint64 `json:"epoch,omitempty"`
 			} `json:"finalized,omitempty"`
 			Justified struct {
-				Root  string `json:"root,omitempty"`
-				Epoch string `json:"epoch,omitempty"`
+				Root  string     `json:"root,omitempty"`
+				Epoch JsonUint64 `json:"epoch,omitempty"`
 			} `json:"current_justified,omitempty"`
 		} `json:"data,omitempty"`
 	}
@@ -141,9 +151,9 @@ func (s *V1HTTPClient) GetChainHead() (*types.ChainHead, error) {
 		return nil, err
 	}
 	typesChainHead.JustifiedBlockRoot = finalityCheckpointsResponse.Data.Justified.Root
-	typesChainHead.JustifiedSlot, _ = s.startSlotOfEpoch(finalityCheckpointsResponse.Data.Justified.Epoch)
+	typesChainHead.JustifiedSlot, _ = s.startSlotOfEpoch(uint64(finalityCheckpointsResponse.Data.Justified.Epoch))
 	typesChainHead.FinalizedBlockRoot = finalityCheckpointsResponse.Data.Finalized.Root
-	typesChainHead.FinalizedSlot, _ = s.startSlotOfEpoch(finalityCheckpointsResponse.Data.Finalized.Epoch)
+	typesChainHead.FinalizedSlot, _ = s.startSlotOfEpoch(uint64(finalityCheckpointsResponse.Data.Finalized.Epoch))
 	return typesChainHead, nil
 }
 
@@ -162,12 +172,12 @@ func New(httpClient *http.Client, baseURL string) *V1HTTPClient {
 }
 
 func (s *V1HTTPClient) getBlockSlot(blockId string) (uint64, error) {
-	blockHeaderPath := fmt.Sprintf("v1/beacon/headers/%s", blockId)
+	blockHeaderPath := fmt.Sprintf("eth/v1/beacon/headers/%s", blockId)
 	type blockHeaderTypeResponse struct {
 		Data struct {
 			Header struct {
 				Message struct {
-					Slot string `json:"slot,omitempty"`
+					Slot JsonUint64 `json:"slot,omitempty"`
 				} `json:"message,omitempty"`
 			} `json:"header,omitempty"`
 		} `json:"data,omitempty"`
@@ -177,17 +187,9 @@ func (s *V1HTTPClient) getBlockSlot(blockId string) (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
-	slot, err := strconv.ParseUint(blockHeaderResponse.Data.Header.Message.Slot, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	return slot, nil
+	return uint64(blockHeaderResponse.Data.Header.Message.Slot), nil
 }
 
-func (s *V1HTTPClient) startSlotOfEpoch(epochStr string) (uint64, error) {
-	epoch, err := strconv.ParseUint(epochStr, 10, 64)
-	if err != nil {
-		return 0, err
-	}
+func (s *V1HTTPClient) startSlotOfEpoch(epoch uint64) (uint64, error) {
 	return epoch * 32, nil
 }
