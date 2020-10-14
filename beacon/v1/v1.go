@@ -81,17 +81,9 @@ func (s *V1HTTPClient) GetPeerCount() (int64, error) {
 }
 
 func (s *V1HTTPClient) GetAttestationsInPoolCount() (int64, error) {
-	path := "eth/v1/beacon/pool/attestations"
-	type attestationsResponse struct {
-		Data []struct {
-		} `json:"data,omitempty"`
-	}
-	response := new(attestationsResponse)
-	_, err := s.api.New().Get(path).ReceiveSuccess(response)
-	if err != nil {
-		return 0, err
-	}
-	return int64(len(response.Data)), nil
+	// TODO: There's an attestations pool endpoint, but it lists way too much.
+	//       So much, that querying it a lot is similar to a self-induced DoS attack.
+	return 0, beacon.NotImplemented
 }
 
 func (s *V1HTTPClient) GetSyncStatus() (bool, error) {
