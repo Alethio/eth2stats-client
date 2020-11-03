@@ -70,6 +70,7 @@ func (s *V1HTTPClient) GetPeerCount() (int64, error) {
 	path := "eth/v1/node/peers"
 	type peersResponse struct {
 		Data []struct {
+			State string `json:"state,omitempty"`
 		} `json:"data,omitempty"`
 	}
 	response := new(peersResponse)
@@ -77,7 +78,13 @@ func (s *V1HTTPClient) GetPeerCount() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return int64(len(response.Data)), nil
+	connected := int64(0)
+	for _, p := range response.Data {
+		if p.State == "connected" {
+			connected++
+		}
+	}
+	return connected, nil
 }
 
 func (s *V1HTTPClient) GetAttestationsInPoolCount() (int64, error) {
